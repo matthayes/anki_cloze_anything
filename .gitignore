@@ -1,0 +1,6 @@
+.DS_Store
+.python-version
+*.pyc
+*.anki2
+.pytest_cache
+target

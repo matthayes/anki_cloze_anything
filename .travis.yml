@@ -1,0 +1,8 @@
+sudo: false
+language: python
+python:
+  - "3.6"
+install: "make init"
+script:
+  - make flake8
+cache: pip
