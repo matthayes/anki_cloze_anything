@@ -4,7 +4,7 @@ This project provides a JavaScript-based cloze implementation that is completely
 
 Replicating Anki functionality with JavaScript and card templates is not the goal however.  The goal is endless flexibility.  You can add cloze cards to any existing note type ("cloze anything") simply by adding new fields and card templates based on the instructions found here.  You can also modify the templates completely, using them simply as a guide.
 
-An optional plugin is also provided that automates some of the otherwise (minimal) manual work that would be required when following this approach.
+An optional [plugin](https://ankiweb.net/shared/info/330680661) is also provided that automates some of the otherwise (minimal) manual work that would be required when following this approach.
 
 Here are more details about some cool things you can do with this approach:
 
@@ -30,6 +30,8 @@ Similar to Anki's [Cloze Templates](https://apps.ankiweb.net/docs/manual.html#cl
 For example, suppose you want to create cloze cards for each of the words in the expression *Ik heb honger*.  You would write the fields like so:
 
 ![Ik heb honger fields](https://raw.githubusercontent.com/matthayes/anki_cloze_anything/master/images/ik_heb_honger.png)
+
+For an HTML rendering of this example, see [here](https://htmlpreview.github.io/?https://github.com/matthayes/anki_cloze_anything/blob/master/examples/front.html).
 
 Because each of the cloze fields has a non-empty value of `1`, a card will be generated for each of `c1` through `c3`.  If you deleted the `1` from `ClozeExpression3` then a card will be generated for `c1` and `c2` only.
 

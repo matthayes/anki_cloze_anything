@@ -1,0 +1,40 @@
+This is the plugin corresponding to the <a href="https://github.com/matthayes/anki_cloze_anything">Cloze Anything</a> project.  This plugin automates some of the otherwise manual work that would be required when following the approach of this project.  While this plugin is not necessary to follow this approach, it does make it a lot easier.
+
+The <a href="https://github.com/matthayes/anki_cloze_anything">Cloze Anything</a> project provides a JavaScript-based cloze implementation that is completely independent from Anki's <a href="https://apps.ankiweb.net/docs/manual.html#cloze-deletion">Cloze Deletion</a> and does not require any modifications to Anki (via a plugin) for it to work.  This is achieved purely through JavaScript in the card template and a novel application of Anki's built-in (awesome) <a href="https://apps.ankiweb.net/docs/manual.html#selective-card-generation">Selective Card Generation</a>.  It has no dependency on Anki's Cloze note type nor any other note types.  It works on both Anki Desktop and Mobile.
+
+Replicating Anki functionality with JavaScript and card templates is not the goal however.  The goal is endless flexibility.  You can add cloze cards to any existing note type ("cloze anything") simply by adding new fields and card templates based on the instructions found here.  You can also modify the templates completely, using them simply as a guide.
+
+Further details on the approach and how the plugin works can be found on the <a href="https://github.com/matthayes/anki_cloze_anything">Github page</a>.  Below you will find only a short description of how the plugin works.
+
+The plugin does two things to make it easier for you to edit cloze deletions when following this approach:
+
+<ul>
+<li>Hooks into Anki's <code>[...]</code> button in the editor so that you can use it on other notes besides those based on Anki's Cloze type.</li>
+<li>Synchronizes edits from the <code>ExpressionCloze</code> field (or similarly named field) to the other fields <code>ExpressionCloze1</code>, <code>ExpressionCloze2</code>, etc. that enable the corresponding cloze cards.</li>
+</ul>
+
+<b>Support</b>
+
+If you experience a problem or have any comments/ideas, please open an issue at the <a href="https://github.com/matthayes/anki_cloze_anything/issues">Issues page</a> for the project on Github.
+
+<b>Version History</b>
+
+<ul>
+<li>0.1: Initial Release</li>
+</ul>
+
+<b>License</b>
+
+Copyright 2019 Matthew Hayes
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
