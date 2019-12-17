@@ -21,7 +21,7 @@ There are two options for getting started:
 
 Shared decks can be found here:
 
-* TODO add link
+* [Cloze Anything Sample](https://ankiweb.net/shared/info/1637056056)
 
 ## How the Template Works
 
