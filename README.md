@@ -126,6 +126,7 @@ Pros:
 * Cloze cards can be added to existing note types without any modifications other than adding new fields and card templates.
 * Compared to Anki's built-in Cloze type, you have more flexibility in how the cloze cards are rendered.  You can choose how many of the other cloze values to show, instead of always showing them all.  This functionality is similar to that provided by [Cloze (Hide All)](https://ankiweb.net/shared/info/1709973686) and [Cloze Overlapper](https://ankiweb.net/shared/info/969733775).
 * Relies on JavaScript and built-in Anki features such as [Selective Card Generation](https://apps.ankiweb.net/docs/manual.html#selective-card-generation).  As cloze functionality is implemented in the templates no modifications to Anki via a plugin are required for it to work.  This greatly reduces the chance that future Anki updates will break this approach.
+* No external JavaScript required.  All necessary JavaScript exists in the templates.
 
 Cons:
 
