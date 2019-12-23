@@ -46,7 +46,7 @@ var card = expEl.getAttribute("data-card");
 var showBeforeValue = expEl.getAttribute("data-cloze-show-before") || "all";
 var showAfterValue = expEl.getAttribute("data-cloze-show-after") || "all";
 
-var cardMatch = card.match(/^[^\d]+(\d+)$/);
+var cardMatch = card.match(/[^\d]+(\d+)$/);
 var isBack = !!document.getElementById("back");
 if (cardMatch) {
   var currentClozeNum = parseInt(cardMatch[1]);
