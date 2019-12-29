@@ -15,7 +15,7 @@
 import json
 import re
 
-from anki.hooks import wrap
+from anki.hooks import addHook, wrap
 from aqt.editor import Editor
 from aqt.qt import Qt
 from aqt.utils import tooltip
@@ -181,8 +181,114 @@ def onBridgeCmd(*args, **kwargs):
     old(self, cmd)
 
 
+def auto_cloze(browser):
+    """
+    Checks for Cloze fields that are empty and fills each from its corresponding source field.  This is useful
+    for content where you want the entire field to be a cloze.  It is easier to select many cards and cloze them
+    in batch in this way rather than doing it individually.
+    """
+
+    nids = browser.selectedNotes()
+    if nids:
+        update_count = 0
+        browser.mw.checkpoint("{} ({} {})".format(
+            "Auto-cloze", len(nids),
+            "notes" if len(nids) > 1 else "note"))
+        browser.model.beginReset()
+        for nid in nids:
+            note = browser.mw.col.getNote(nid)
+            model = note.model()
+            for f in model["flds"]:
+                field_name = f["name"]
+                field_ord = f["ord"]
+                # Fields ending with Cloze that are empty can be automatically filled in
+                if field_name.endswith("Cloze") and not note.fields[field_ord].strip():
+                    other_field_name = field_name[:-len("Cloze")]
+                    other_field_name_ord = next((f["ord"] for f in model["flds"] if f["name"] == other_field_name),
+                                                None)
+                    field_name1_ord = next((f["ord"] for f in model["flds"] if f["name"] == field_name + "1"),
+                                           None)
+                    # Automatically copy from other field without the Cloze suffix
+                    if other_field_name_ord is not None and field_name1_ord is not None and \
+                            not note.fields[field_name1_ord].strip():
+                        content = note.fields[other_field_name_ord]
+                        note.fields[field_ord] = "((c1::" + content + "))"
+                        note.fields[field_name1_ord] = "1"
+                        note.flush()
+                        update_count += 1
+        if update_count:
+            browser.mw.requireReset()
+        tooltip("Updated {} {}".format(update_count, "notes" if update_count != 1 else "note"))
+        browser.model.endReset()
+    else:
+        tooltip("You must select some cards first")
+
+
+def create_missing(browser):
+    """
+    Fills in the apropriate cloze-card-generating fields based on cloze deletions present in a Cloze field.
+    For example, if ExpressionCloze has content "((c1::Foo)) ((c2::Bar))" then this will ensure ExpressionCloze1
+    and ExpressionCloze2 each have the value 1 so that the two cards are generated, but ExpressionCloze3 would
+    be made empty.
+
+    This generally should not be necessary as we ensure the fields are updated as the cloze content is changed.
+    It would only be needed if cards are edited manually before the plugin is installed.  This action can be used
+    to ensure the fields are in sync.
+    """
+
+    nids = browser.selectedNotes()
+    if nids:
+        update_count = 0
+        browser.mw.checkpoint("{} ({} {})".format(
+            "Create Missing Cloze Cards", len(nids),
+            "notes" if len(nids) > 1 else "note"))
+        browser.model.beginReset()
+        for nid in nids:
+            note = browser.mw.col.getNote(nid)
+            model = note.model()
+            for f in model["flds"]:
+                field_name = f["name"]
+                field_ord = f["ord"]
+                # Fields ending with Cloze that are empty can be automatically filled in
+                if field_name.endswith("Cloze"):
+                    cloze_nums = get_cloze_nums(note.fields[field_ord])
+                    cloze_field_regex = re.compile("^" + re.escape(field_name) + r"(\d+)$")
+                    updated = False
+                    for f in model["flds"]:
+                        match = cloze_field_regex.match(f["name"])
+                        if match:
+                            cloze_num = int(match.group(1))
+                            field_content = "1" if cloze_num in cloze_nums else ""
+                            if note.fields[f["ord"]] != field_content:
+                                note.fields[f["ord"]] = field_content
+                                updated = True
+                    if updated:
+                        note.flush()
+                        update_count += 1
+        if update_count:
+            browser.mw.requireReset()
+        tooltip("Updated {} {}".format(update_count, "notes" if update_count != 1 else "note"))
+        browser.model.endReset()
+    else:
+        tooltip("You must select some cards first")
+
+
+def setup_menus(browser):
+    menu = browser.form.menuEdit
+    menu.addSeparator()
+    submenu = menu.addMenu("Cloze Anything")
+    action = submenu.addAction("Auto-cloze Full Field")
+    action.triggered.connect(
+        lambda _: auto_cloze(browser))
+    action = submenu.addAction("Create Missing Cards")
+    action.triggered.connect(
+        lambda _: create_missing(browser))
+
+
 def setup():
     # Note: cannot wrap onCloze because it is referenced within Anki by _links before the wrap here
     # takes effect, so the wrap won't work.
     Editor._onCloze = wrap(Editor._onCloze, onCloze, "around")
     Editor.onBridgeCmd = wrap(Editor.onBridgeCmd, onBridgeCmd, "around")
+
+    addHook("browser.setupMenus", setup_menus)

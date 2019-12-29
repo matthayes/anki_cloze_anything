@@ -73,6 +73,14 @@ The `[...]` button has an additonal useful feature where if you press it while a
 
 You can also modify the cloze field without using the `[...]` button.  The plugin monitors changes and identifies patterns like `((c1::text))`.  It makes the corresponding cloze fields to be either empty or contain `1` depending on the presence of cloze deletions.  For example, if you fill in `ExpressionCloze` with `((c1::Ik)) ((c2::heb)) ((c3::honger)).` then it will fill in `1` for each of `ExpressionCloze1`, `ExpressionCloze2`, and `ExpressionCloze3`.  If you edit it to become `((c1::Ik)) ((c2::heb)) honger.` then it will make `ExpressionCloze3` empty.
 
+### Menu Actions
+
+The plugin adds two actions in the browser under Edit -> Cloze Anything.  Both of them operate on whatever notes
+are selected in the browser.
+
+* **Auto-cloze Full Field:** This automatically makes a cloze from an entire field.  For example, suppose you have a field named `ExpressionCloze` and `Expression`.  If `ExpressionCloze` is empty, then this action causes the content of Expression to be copied to `ExpressionCloze` and made into a cloze like `((c1::content))`.  It also updates `ExpressionCloze1` to cause the cloze card to be generated.  This is useful when you have a lot of notes with short content where you want to cloze the entire content.  It's much more efficient to cloze these in bulk than one by one.
+* **Create Missing Cards:** This basically just makes sure the Cloze field is in sync with the corresponding fields responsible for card generation.  For example, if `ExpressionCloze` has `((c1::Ik)) ((c2::heb)) ((c3::honger)).` then this would ensure `ExpressionCloze1`, `ExpressionCloze2`, and `ExpressionCloze3` are each filled in with a `1`.  But `ExpressionCloze4` would be made blank, if it exists.  This action isn't generally necessary to use while using the plugin because the plugin ensures that these fields are updated as you change content.  But if something goes wrong or if you edit notes before using the plugin, this can be used to fix up the fields to be in sync.
+
 ## Configuration
 
 The template has a couple settings for controlling how the cloze deletions are rendered.  These are `data-cloze-show-before` and `data-cloze-show-after`, as shown in the snippet from the template below.
@@ -148,6 +156,11 @@ In addition to inspiration drawn from Anki's cloze system itself, there are a co
 
 * [Cloze (Hide All)](https://ankiweb.net/shared/info/1709973686)
 * [Cloze Overlapper](https://ankiweb.net/shared/info/969733775)
+
+## Releases
+
+* 0.1 - Initial release (2019-12-17)
+* 0.2 - Add menu actions Auto-cloze Full Field and Create Missing Cards (2019-12-29)
 
 ## License
 
