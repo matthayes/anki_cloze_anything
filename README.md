@@ -78,8 +78,18 @@ You can also modify the cloze field without using the `[...]` button.  The plugi
 The plugin adds two actions in the browser under Edit -> Cloze Anything.  Both of them operate on whatever notes
 are selected in the browser.
 
-* **Auto-cloze Full Field:** This automatically makes a cloze from an entire field.  For example, suppose you have a field named `ExpressionCloze` and `Expression`.  If `ExpressionCloze` is empty, then this action causes the content of `Expression` to be copied to `ExpressionCloze` and made into a cloze like `((c1::content))`.  It also updates `ExpressionCloze1` to cause the cloze card to be generated.  This is useful when you have a lot of notes with short content where you want to cloze the entire content.  It's much more efficient to cloze these in bulk than one by one.
-* **Create Missing Cards:** This basically just makes sure the Cloze field is in sync with the corresponding fields responsible for card generation.  For example, if `ExpressionCloze` has `((c1::Ik)) ((c2::heb)) ((c3::honger)).` then this would ensure `ExpressionCloze1`, `ExpressionCloze2`, and `ExpressionCloze3` are each filled in with a `1`.  But `ExpressionCloze4` would be made blank, if it exists.  This action isn't generally necessary to use while using the plugin because the plugin ensures that these fields are updated as you change content.  But if something goes wrong or if you edit notes before using the plugin, this can be used to fix up the fields to be in sync.
+#### Auto-cloze Full Field
+
+This automatically makes a cloze from an entire field.  For example, suppose you have a field named `ExpressionCloze` and `Expression`.  If `ExpressionCloze` is empty, then this action causes the content of `Expression` to be copied to `ExpressionCloze` and made into a cloze like `((c1::content))`.  It also updates `ExpressionCloze1` to cause the cloze card to be generated.  This is useful when you have a lot of notes with short content where you want to cloze the entire content.  It's much more efficient to cloze these in bulk than one by one.
+
+Note that this essentially is using cloze to make a Production card (i.e. given the meaning in your native language, produce the expression in the language you are learning).  So why not just make a Production card template instead of using cloze?  In some cases this may be more effective than using cloze.  However there are a couple reasons why cloze could be useful:
+
+* Your notes may be a mixture of simple expressions where you want to have a single cloze for the entire content and more complex expressions where you want two or more clozes.  With this action you can pick the simple expressions in the browser and cloze them in bulk.
+* Your notes may overall be simple expressions.  But you may find that for some notes upon review they are more complex than you thought.  Instead of one cloze you may want to change it to two or more.  By using cloze you have the flexibility to change your mind in the future without having to migrate to a different note type.
+
+#### Create Missing Cards
+
+This basically just makes sure the Cloze field is in sync with the corresponding fields responsible for card generation.  For example, if `ExpressionCloze` has `((c1::Ik)) ((c2::heb)) ((c3::honger)).` then this would ensure `ExpressionCloze1`, `ExpressionCloze2`, and `ExpressionCloze3` are each filled in with a `1`.  But `ExpressionCloze4` would be made blank, if it exists.  This action isn't generally necessary to use while using the plugin because the plugin ensures that these fields are updated as you change content.  But if something goes wrong or if you edit notes before using the plugin, this can be used to fix up the fields to be in sync.
 
 ## Configuration
 
