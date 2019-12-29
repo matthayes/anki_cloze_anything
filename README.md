@@ -1,5 +1,8 @@
 # Anki Cloze Anything
 
+[![Build Status](https://travis-ci.org/matthayes/anki_cloze_anything.svg?branch=master)](https://travis-ci.org/matthayes/anki_cloze_anything)
+[![Release](https://img.shields.io/badge/release-v0.2-brightgreen.svg)](https://github.com/matthayes/anki_cloze_anything/releases/tag/v0.1)
+
 This project provides a JavaScript-based cloze implementation that is completely independent from Anki's [Cloze Deletion](https://apps.ankiweb.net/docs/manual.html#cloze-deletion) and does not require any modifications to Anki (via a plugin) for it to work.  This is achieved purely through JavaScript in the card template and a novel application of Anki's built-in (awesome) [Selective Card Generation](https://apps.ankiweb.net/docs/manual.html#selective-card-generation).  It has no dependency on Anki's Cloze note type nor any other note types.  It works on both Anki Desktop and Mobile.
 
 Replicating Anki functionality with JavaScript and card templates is not the goal however.  The goal is endless flexibility.  You can add cloze cards to any existing note type ("cloze anything") simply by adding new fields and card templates based on the instructions found here.  You can also modify the templates completely, using them simply as a guide.
