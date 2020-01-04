@@ -7,13 +7,15 @@ This project provides a JavaScript-based cloze implementation that is completely
 
 Replicating Anki functionality with JavaScript and card templates is not the goal however.  The goal is endless flexibility.  You can add cloze cards to any existing note type ("cloze anything") simply by adding new fields and card templates based on the instructions found here.  You can also modify the templates completely, using them simply as a guide.
 
-An optional [plugin](https://ankiweb.net/shared/info/330680661) is also provided that automates some of the otherwise (minimal) manual work that would be required when following this approach.
+With the default settings this replicates Anki's cloze functionality.  However the template is highly configurable and let's you do things you can't otherwise easily do.  Below is a summary of some useful features of the templates and this approach.
 
-Here are more details about some cool things you can do with this approach:
-
+* **Control the visibility of other close deletions**.  Normally Anki will show the other cloze deletions besides the one currently being tested for a particular card.  The approach here let's you customize this, similar to the functionality provided by [Cloze (Hide All)](https://ankiweb.net/shared/info/1709973686) and [Cloze Overlapper](https://ankiweb.net/shared/info/969733775).
+* **Customize the cloze format**.  Anki replaces each clozed value with either `[...]` or `[hint]` in the case of a hint.  The templates let you customize this.  For example, you could use underscores and have the format be `___`.  Or you could always include the hint, as in `___ [hint]`.  Also instead of a fixed number of 3 characters you could have each non-space character replaced.  So you could have `((c1::ab cdef::hint))` become `__ ____ [hint]`.
+* **Selectively reveal characters as a hint**.  Sometimes due to ambiguity you may need a hint at what a word starts with.  The template has a simple syntax to support this.  Simply surround the characters you want to keep with backticks.  For example, ``((c1::`a`bc `d`ef))`` could be rendered as `a__ d__`.  You can selectively reveal any part of the content, not just at the beginning.  Note that you could also do ``a((c1::bc)) d((c1::ef))``, however the backtick syntax may be more convenient.
 * **Add cloze deletion to an existing note**.  Suppose you already have a note with fields *Expression* and *Meaning* and a card that tests you on Expression -> Meaning.  Now suppose you want a version of *Expression* with cloze deletions.  Normally with Anki you'd have to copy the text to a completely separate note based on the *Cloze* note type.  This is a big headache to manage.  Instead with the Cloze Anything approach you copy the text to a *ExpressionCloze* field in the same note.  This makes it much easier to manage the content.  You can easily find notes that don't have a cloze through a simple search in the browser.
 * **Add multiple cloze deletion fields to an existing note**.  Suppose that you have a note type that tests you on vocabulary with fields *VocabItem* and *Meaning*.  Suppose that you have added some example fields *ExampleA* and *ExampleB* to provide examples of how the vocabulary item is used.  With the Cloze Anything approach you can create cloze versions for each of these examples as *ExampleACloze* and *ExampleBCloze* and render cards from each of them.  (Note: the template does not currently support numbers within the field name).
-* **Control the visibility of other close deletions**.  Normally Anki will show the other cloze deletions besides the one currently being tested for a particular card.  The approach here let's you customize this, similar to the functionality provided by [Cloze (Hide All)](https://ankiweb.net/shared/info/1709973686) and [Cloze Overlapper](https://ankiweb.net/shared/info/969733775).
+
+An optional [plugin](https://ankiweb.net/shared/info/330680661) is also provided that automates some of the otherwise (minimal) manual work that would be required when following this approach.
 
 ## Getting Started
 
@@ -96,15 +98,64 @@ This basically just makes sure the Cloze field is in sync with the corresponding
 
 ## Configuration
 
-The template has a couple settings for controlling how the cloze deletions are rendered.  These are `data-cloze-show-before` and `data-cloze-show-after`, as shown in the snippet from the template below.
+The template has several settings for controlling how the cloze deletions are rendered.  All settings are added to the `div` as shown below for `data-cloze-show-before`.
 
 ```
-<div id="cloze" data-card="{{Card}}" data-cloze-show-before="all" data-cloze-show-after="all">
+<div id="cloze" data-card="{{Card}}" data-cloze-show-before="all">
 {{ExpressionCloze}}
 </div>
 ```
 
-In the snippet above, both of these have the value `all`.  This means that all cloze deletions before and after the current cloze will be displayed.  For example, suppose that the content is:
+### data-cloze-replace-char
+
+This controls what character to replace clozed values with.  The default is a period, `.`, which is the same as Anki.  If instead you would like to use underscores:
+
+```
+data-cloze-replace-char="_"
+```
+
+### data-cloze-replace-same-length
+
+This is a `true` or `false` value that controls whether clozed values should be replaced with a fixed 3-character replacement or with an equal number of replacement characters as exist in the content.  The default is `false`, which is the same as Anki's cloze behavior.
+
+If set to `true`, then `((c1::abcd))` would be replaced with `[....]`.
+
+Note that setting this to true will cause it to preserve spaces.  So then `((c1::abc def))` would become `___ ___`.  That is, only the non-space characters are replaced.
+
+### data-cloze-always-show-blanks
+
+This is a `true` or `false` value that controls whether blanks should be shown even if there is a hint.  The default is `false`, which is the same behavior as Anki.  That is, `((c1::abc))` would become `[...]`, but `((c1::abc::hint))` would become `[hint]`.  When set to `true`, then the latter becomes `[...|hint]`.
+
+This setting tends to be more useful when used with `data-cloze-replace-same-length`, `data-cloze-replace-char`, and the formatting settings below.
+
+### data-cloze-blanks-format, data-cloze-hint-format, and data-cloze-blanks-and-hint-format
+
+These control the cloze format for three different scenarios:
+
+* `data-cloze-blanks-format`: Format used when only blanks are displayed.  The default format is `[{blanks}]`.
+* `data-cloze-hint-format`: Format used when only the hint is displayed.  The default format is `[{hint}]`.
+* `data-cloze-blanks-and-hint-format`: Format used when blanks and the hint are displayed.  The default format is `[{blanks}|{hint}]`.
+
+Suppose you want more of a fill in the blanks style for your cloze cards.  But, you still want to display the hints if available.
+
+```
+data-cloze-always-show-blanks="true" data-cloze-blanks-format="{blanks}" data-cloze-hint-format="[{hint}]" data-cloze-blanks-and-hint-format="{blanks} [{hint}]" data-cloze-replace-char="_"
+```
+
+This would result in the following transformatings:
+
+* `((c1::abc))` => `___`
+* `((c1::abc:hint))` => `___ [hint]`
+
+### data-cloze-show-before and data-cloze-show-after
+
+The `data-cloze-show-before` and `data-cloze-show-after` settings can be added to the template as shown in the snippet below.  These control whether other clozed values before and after the current cloze are shown.
+
+```
+data-cloze-show-before="all" data-cloze-show-after="all"
+```
+
+In the snippet above, both of these have the value `all`, which is the default.  This means that all cloze deletions before and after the current cloze will be displayed.  For example, suppose that the content is:
 
 ```
 ((c1::Ik)) ((c2::heb)) ((c3::honger)).
@@ -170,14 +221,19 @@ In addition to inspiration drawn from Anki's cloze system itself, there are a co
 * [Cloze (Hide All)](https://ankiweb.net/shared/info/1709973686)
 * [Cloze Overlapper](https://ankiweb.net/shared/info/969733775)
 
-## Releases
+## Plugin Releases
 
 * 0.1 - Initial release (2019-12-17)
 * 0.2 - Add menu actions Auto-cloze Full Field and Create Missing Cards (2019-12-29)
 
+## Template Releases
+
+* (2019-12-17) Initial release
+* (2019-12-24) Template now allows numbers within field names.
+
 ## License
 
-Copyright 2019 Matthew Hayes
+Copyright 2019-2020 Matthew Hayes
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
