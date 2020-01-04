@@ -156,6 +156,23 @@ Alternatively, for `data-cloze-show-before="all"` and `data-cloze-show-after="no
 
 ![hamlet2](https://raw.githubusercontent.com/matthayes/anki_cloze_anything/master/images/hamlet2.png)
 
+### Overriding Configuration
+
+If you'd like to override any default configuration values for certain cards, one way to achieve this is
+to add a field to hold configuration:
+
+```
+<div id="cloze" data-card="{{Card}}" {{ExpressionClozeConfig}}>
+{{ExpressionCloze}}
+</div>
+```
+
+Then for `ExpressionClozeConfig` you could fill in this for a card:
+
+```
+data-cloze-show-before="all"
+```
+
 ## How the Plugin Works
 
 The plugin does two things to make it easier for you to edit cloze deletions when following this approach:
