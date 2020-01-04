@@ -158,6 +158,12 @@ function string_format(format, d) {
   });
 }
 
+function strip_keep_chars(content) {
+  return content.replace(charKeepGlobalRegex, function(p) {
+    return p.slice(1, p.length - 1);
+  });
+}
+
 // Generates the replacement for the given content and hint.  The result is wrapped in a span
 // with the given classes.
 function replace_content(content, hint, classes) {
@@ -200,9 +206,7 @@ if (cardMatch) {
     if (isBack) {
       // For the back card we need to strip out the surrounding characters used to mark those
       // we are keeping.
-      result = content.replace(charKeepGlobalRegex, function(p) {
-        return p.slice(1, p.length - 1);
-      });
+      result = strip_keep_chars(content);
     }
     else {
       if (clozeNum == currentClozeNum) {
@@ -210,12 +214,12 @@ if (cardMatch) {
       }
       else if (clozeNum < currentClozeNum) {
         if (showBeforeValue == "all") {
-          result = content;
+          result = strip_keep_chars(content);
         }
         else if (showBeforeValue.match(/^\d+$/)) {
           var showBeforeNum = parseInt(showBeforeValue);
           if (currentClozeNum - clozeNum <= showBeforeNum) {
-            result = content;
+            result = strip_keep_chars(content);
           }
           else {
             result = replace_content(content, contentHint, "other-cloze");
@@ -227,12 +231,12 @@ if (cardMatch) {
       }
       else if (clozeNum > currentClozeNum) {
         if (showAfterValue == "all") {
-          result = content;
+          result = strip_keep_chars(content);
         }
         else if (showAfterValue.match(/^\d+$/)) {
           var showAfterNum = parseInt(showAfterValue);
           if (clozeNum - currentClozeNum <= showAfterNum) {
-            result = content;
+            result = strip_keep_chars(content);
           }
           else {
             result = replace_content(content, contentHint, "other-cloze");
@@ -243,7 +247,7 @@ if (cardMatch) {
         }
       }
       else {
-        result = content;
+        result = strip_keep_chars(content);
       }
     }
 

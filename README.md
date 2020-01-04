@@ -243,6 +243,7 @@ In addition to inspiration drawn from Anki's cloze system itself, there are a co
 
 * (2019-12-17) Initial release
 * (2019-12-24) Template now allows numbers within field names.
+* (2019-01-03) Additional configuration options.  Backticks to retain characters as hints.
 
 ## License
 
