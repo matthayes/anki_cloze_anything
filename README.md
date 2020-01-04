@@ -21,12 +21,8 @@ An optional [plugin](https://ankiweb.net/shared/info/330680661) is also provided
 
 There are two options for getting started:
 
-1. Download one of the shared decks I've already prepared for you and use the note type (and card templates) as the basis for your cards.
+1. Download the [shared deck](https://ankiweb.net/shared/info/1637056056) I've already prepared for you and use the note type (and card templates) as the basis for your cards.
 2. Follow my [detailed instructions](https://github.com/matthayes/anki_cloze_anything/blob/master/docs/INSTRUCTIONS.md) on how to set up the fields and card templates.  This is the best choice when you want to add cloze to an existing note type.
-
-Shared decks can be found here:
-
-* [Cloze Anything Sample](https://ankiweb.net/shared/info/1637056056)
 
 ## How the Template Works
 
@@ -65,38 +61,7 @@ The templates also support hints in the cloze deletions, as in Anki's system.  F
 ((c1::Ik)) ((c2::heb::verb)) ((c3::honger)).
 ```
 
-## How the Plugin Works
-
-The plugin does two things to make it easier for you to edit cloze deletions when following this approach:
-
-* Hooks into Anki's `[...]` button in the editor so that you can use it on other notes besides those based on Anki's Cloze type.
-* Synchronizes edits from the `ExpressionCloze` field (or similarly named field) to the other fields `ExpressionCloze1`, `ExpressionCloze2`, etc. that enable the corresponding cloze cards.
-
-The `[...]` button behaves the same when used on one of the note types based on Anki's Cloze type.  Otherwise however, if the field name ends in *Cloze*, like `ExpressionCloze`, then it will wrap the selected text, such as in `((c1::text))`.  This is the same as Anki's normal behavior with clozes except it uses parentheses instead of curly braces.
-
-The `[...]` button has an additonal useful feature where if you press it while an empty field ending in *Cloze* has focus, it will copy the text from another field with the same name minus the *Cloze* suffix.  For example, if you click the button while focusing on `ExpressionCloze` then it will copy the text from `Expression`.
-
-You can also modify the cloze field without using the `[...]` button.  The plugin monitors changes and identifies patterns like `((c1::text))`.  It makes the corresponding cloze fields to be either empty or contain `1` depending on the presence of cloze deletions.  For example, if you fill in `ExpressionCloze` with `((c1::Ik)) ((c2::heb)) ((c3::honger)).` then it will fill in `1` for each of `ExpressionCloze1`, `ExpressionCloze2`, and `ExpressionCloze3`.  If you edit it to become `((c1::Ik)) ((c2::heb)) honger.` then it will make `ExpressionCloze3` empty.
-
-### Menu Actions
-
-The plugin adds two actions in the browser under Edit -> Cloze Anything.  Both of them operate on whatever notes
-are selected in the browser.
-
-#### Auto-cloze Full Field
-
-This automatically makes a cloze from an entire field.  For example, suppose you have a field named `ExpressionCloze` and `Expression`.  If `ExpressionCloze` is empty, then this action causes the content of `Expression` to be copied to `ExpressionCloze` and made into a cloze like `((c1::content))`.  It also updates `ExpressionCloze1` to cause the cloze card to be generated.  This is useful when you have a lot of notes with short content where you want to cloze the entire content.  It's much more efficient to cloze these in bulk than one by one.
-
-Note that this essentially is using cloze to make a Production card (i.e. given the meaning in your native language, produce the expression in the language you are learning).  So why not just make a Production card template instead of using cloze?  In some cases this may be more effective than using cloze.  However there are a couple reasons why cloze could be useful:
-
-* Your notes may be a mixture of simple expressions where you want to have a single cloze for the entire content and more complex expressions where you want two or more clozes.  With this action you can pick the simple expressions in the browser and cloze them in bulk.
-* Your notes may overall be simple expressions.  But you may find that for some notes upon review they are more complex than you thought.  Instead of one cloze you may want to change it to two or more.  By using cloze you have the flexibility to change your mind in the future without having to migrate to a different note type.
-
-#### Create Missing Cards
-
-This basically just makes sure the Cloze field is in sync with the corresponding fields responsible for card generation.  For example, if `ExpressionCloze` has `((c1::Ik)) ((c2::heb)) ((c3::honger)).` then this would ensure `ExpressionCloze1`, `ExpressionCloze2`, and `ExpressionCloze3` are each filled in with a `1`.  But `ExpressionCloze4` would be made blank, if it exists.  This action isn't generally necessary to use while using the plugin because the plugin ensures that these fields are updated as you change content.  But if something goes wrong or if you edit notes before using the plugin, this can be used to fix up the fields to be in sync.
-
-## Configuration
+### Configuration
 
 The template has several settings for controlling how the cloze deletions are rendered.  All settings are added to the `div` as shown below for `data-cloze-show-before`.
 
@@ -106,7 +71,7 @@ The template has several settings for controlling how the cloze deletions are re
 </div>
 ```
 
-### data-cloze-replace-char
+#### data-cloze-replace-char
 
 This controls what character to replace clozed values with.  The default is a period, `.`, which is the same as Anki.  If instead you would like to use underscores:
 
@@ -114,7 +79,7 @@ This controls what character to replace clozed values with.  The default is a pe
 data-cloze-replace-char="_"
 ```
 
-### data-cloze-replace-same-length
+#### data-cloze-replace-same-length
 
 This is a `true` or `false` value that controls whether clozed values should be replaced with a fixed 3-character replacement or with an equal number of replacement characters as exist in the content.  The default is `false`, which is the same as Anki's cloze behavior.
 
@@ -122,13 +87,13 @@ If set to `true`, then `((c1::abcd))` would be replaced with `[....]`.
 
 Note that setting this to true will cause it to preserve spaces.  So then `((c1::abc def))` would become `___ ___`.  That is, only the non-space characters are replaced.
 
-### data-cloze-always-show-blanks
+#### data-cloze-always-show-blanks
 
 This is a `true` or `false` value that controls whether blanks should be shown even if there is a hint.  The default is `false`, which is the same behavior as Anki.  That is, `((c1::abc))` would become `[...]`, but `((c1::abc::hint))` would become `[hint]`.  When set to `true`, then the latter becomes `[...|hint]`.
 
 This setting tends to be more useful when used with `data-cloze-replace-same-length`, `data-cloze-replace-char`, and the formatting settings below.
 
-### data-cloze-blanks-format, data-cloze-hint-format, and data-cloze-blanks-and-hint-format
+#### data-cloze-blanks-format, data-cloze-hint-format, and data-cloze-blanks-and-hint-format
 
 These control the cloze format for three different scenarios:
 
@@ -147,7 +112,7 @@ This would result in the following transformatings:
 * `((c1::abc))` => `___`
 * `((c1::abc:hint))` => `___ [hint]`
 
-### data-cloze-show-before and data-cloze-show-after
+#### data-cloze-show-before and data-cloze-show-after
 
 The `data-cloze-show-before` and `data-cloze-show-after` settings can be added to the template as shown in the snippet below.  These control whether other clozed values before and after the current cloze are shown.
 
@@ -190,6 +155,37 @@ Notice that the current cloze is highlighted in blue and the others are grey.  T
 Alternatively, for `data-cloze-show-before="all"` and `data-cloze-show-after="none"` the third card would be rendered as:
 
 ![hamlet2](https://raw.githubusercontent.com/matthayes/anki_cloze_anything/master/images/hamlet2.png)
+
+## How the Plugin Works
+
+The plugin does two things to make it easier for you to edit cloze deletions when following this approach:
+
+* Hooks into Anki's `[...]` button in the editor so that you can use it on other notes besides those based on Anki's Cloze type.
+* Synchronizes edits from the `ExpressionCloze` field (or similarly named field) to the other fields `ExpressionCloze1`, `ExpressionCloze2`, etc. that enable the corresponding cloze cards.
+
+The `[...]` button behaves the same when used on one of the note types based on Anki's Cloze type.  Otherwise however, if the field name ends in *Cloze*, like `ExpressionCloze`, then it will wrap the selected text, such as in `((c1::text))`.  This is the same as Anki's normal behavior with clozes except it uses parentheses instead of curly braces.
+
+The `[...]` button has an additonal useful feature where if you press it while an empty field ending in *Cloze* has focus, it will copy the text from another field with the same name minus the *Cloze* suffix.  For example, if you click the button while focusing on `ExpressionCloze` then it will copy the text from `Expression`.
+
+You can also modify the cloze field without using the `[...]` button.  The plugin monitors changes and identifies patterns like `((c1::text))`.  It makes the corresponding cloze fields to be either empty or contain `1` depending on the presence of cloze deletions.  For example, if you fill in `ExpressionCloze` with `((c1::Ik)) ((c2::heb)) ((c3::honger)).` then it will fill in `1` for each of `ExpressionCloze1`, `ExpressionCloze2`, and `ExpressionCloze3`.  If you edit it to become `((c1::Ik)) ((c2::heb)) honger.` then it will make `ExpressionCloze3` empty.
+
+### Menu Actions
+
+The plugin adds two actions in the browser under Edit -> Cloze Anything.  Both of them operate on whatever notes
+are selected in the browser.
+
+#### Auto-cloze Full Field
+
+This automatically makes a cloze from an entire field.  For example, suppose you have a field named `ExpressionCloze` and `Expression`.  If `ExpressionCloze` is empty, then this action causes the content of `Expression` to be copied to `ExpressionCloze` and made into a cloze like `((c1::content))`.  It also updates `ExpressionCloze1` to cause the cloze card to be generated.  This is useful when you have a lot of notes with short content where you want to cloze the entire content.  It's much more efficient to cloze these in bulk than one by one.
+
+Note that this essentially is using cloze to make a Production card (i.e. given the meaning in your native language, produce the expression in the language you are learning).  So why not just make a Production card template instead of using cloze?  In some cases this may be more effective than using cloze.  However there are a couple reasons why cloze could be useful:
+
+* Your notes may be a mixture of simple expressions where you want to have a single cloze for the entire content and more complex expressions where you want two or more clozes.  With this action you can pick the simple expressions in the browser and cloze them in bulk.
+* Your notes may overall be simple expressions.  But you may find that for some notes upon review they are more complex than you thought.  Instead of one cloze you may want to change it to two or more.  By using cloze you have the flexibility to change your mind in the future without having to migrate to a different note type.
+
+#### Create Missing Cards
+
+This basically just makes sure the Cloze field is in sync with the corresponding fields responsible for card generation.  For example, if `ExpressionCloze` has `((c1::Ik)) ((c2::heb)) ((c3::honger)).` then this would ensure `ExpressionCloze1`, `ExpressionCloze2`, and `ExpressionCloze3` are each filled in with a `1`.  But `ExpressionCloze4` would be made blank, if it exists.  This action isn't generally necessary to use while using the plugin because the plugin ensures that these fields are updated as you change content.  But if something goes wrong or if you edit notes before using the plugin, this can be used to fix up the fields to be in sync.
 
 ## Pros and Cons
 
