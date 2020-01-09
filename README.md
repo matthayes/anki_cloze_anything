@@ -7,13 +7,13 @@ This project provides a JavaScript-based cloze implementation that is completely
 
 Replicating Anki functionality with JavaScript and card templates is not the goal however.  The goal is endless flexibility.  You can add cloze cards to any existing note type ("cloze anything") simply by adding new fields and card templates based on the instructions found here.  You can also modify the templates completely, using them simply as a guide.
 
-With the default settings this replicates Anki's cloze functionality.  However the template is highly configurable and let's you do things you can't otherwise easily do.  Below is a summary of some useful features of the templates and this approach.
+With the default settings this replicates Anki's cloze functionality.  However the template is highly configurable and lets you do things you can't otherwise easily do.  Below is a summary of some useful features of the templates and this approach.
 
-* **Control the visibility of other close deletions**.  Normally Anki will show the other cloze deletions besides the one currently being tested for a particular card.  The approach here let's you customize this, similar to the functionality provided by [Cloze (Hide All)](https://ankiweb.net/shared/info/1709973686) and [Cloze Overlapper](https://ankiweb.net/shared/info/969733775).
+* **Control the visibility of other cloze deletions**.  Normally Anki will show the other cloze deletions besides the one currently being tested for a particular card.  The approach here lets you customize this, similar to the functionality provided by [Cloze (Hide All)](https://ankiweb.net/shared/info/1709973686) and [Cloze Overlapper](https://ankiweb.net/shared/info/969733775).
 * **Customize the cloze format**.  Anki replaces each clozed value with either `[...]` or `[hint]` in the case of a hint.  The templates let you customize this.  For example, you could use underscores and have the format be `___`.  Or you could always include the hint, as in `___ [hint]`.  Also instead of a fixed number of 3 characters you could have each non-space character replaced.  So you could have `((c1::ab cdef::hint))` become `__ ____ [hint]`.
 * **Selectively reveal characters as a hint**.  Sometimes due to ambiguity you may need a hint at what a word starts with.  The template has a simple syntax to support this.  Simply surround the characters you want to keep with backticks.  For example, ``((c1::`a`bc `d`ef))`` could be rendered as `a__ d__`.  You can selectively reveal any part of the content, not just at the beginning.  Note that you could also do ``a((c1::bc)) d((c1::ef))``, however the backtick syntax may be more convenient.
-* **Add cloze deletion to an existing note**.  Suppose you already have a note with fields *Expression* and *Meaning* and a card that tests you on Expression -> Meaning.  Now suppose you want a version of *Expression* with cloze deletions.  Normally with Anki you'd have to copy the text to a completely separate note based on the *Cloze* note type.  This is a big headache to manage.  Instead with the Cloze Anything approach you copy the text to a *ExpressionCloze* field in the same note.  This makes it much easier to manage the content.  You can easily find notes that don't have a cloze through a simple search in the browser.
-* **Add multiple cloze deletion fields to an existing note**.  Suppose that you have a note type that tests you on vocabulary with fields *VocabItem* and *Meaning*.  Suppose that you have added some example fields *ExampleA* and *ExampleB* to provide examples of how the vocabulary item is used.  With the Cloze Anything approach you can create cloze versions for each of these examples as *ExampleACloze* and *ExampleBCloze* and render cards from each of them.  (Note: the template does not currently support numbers within the field name).
+* **Add cloze deletion to an existing note**.  Suppose you already have a note with fields *Expression* and *Meaning* and a card that tests you on Expression -> Meaning.  Now suppose you want a version of *Expression* with cloze deletions.  Normally with Anki you'd have to copy the text to a completely separate note based on the *Cloze* note type.  This is a big headache to manage.  Instead with the Cloze Anything approach you copy the text to an *ExpressionCloze* field in the same note.  This makes it much easier to manage the content.  You can easily find notes that don't have a cloze through a simple search in the browser.
+* **Add multiple cloze deletion fields to an existing note**.  Suppose that you have a note type that tests you on vocabulary with fields *VocabItem* and *Meaning*.  Suppose that you have added some example fields *ExampleA* and *ExampleB* to provide examples of how the vocabulary item is used.  With the Cloze Anything approach you can create cloze versions for each of these examples as *ExampleACloze* and *ExampleBCloze* and render cards from each of them.
 
 An optional [plugin](https://ankiweb.net/shared/info/330680661) is also provided that automates some of the otherwise (minimal) manual work that would be required when following this approach.
 
@@ -24,13 +24,15 @@ There are two options for getting started:
 1. Download the [shared deck](https://ankiweb.net/shared/info/1637056056) I've already prepared for you and use the note type (and card templates) as the basis for your cards.
 2. Follow my [detailed instructions](https://github.com/matthayes/anki_cloze_anything/blob/master/docs/INSTRUCTIONS.md) on how to set up the fields and card templates.  This is the best choice when you want to add cloze to an existing note type.
 
+Installing the [plugin](https://ankiweb.net/shared/info/330680661) is also recommended to make it easier for you to edit the cloze cards, but it isn't required.
+
 ## How the Template Works
 
-Similar to Anki's [Cloze Templates](https://apps.ankiweb.net/docs/manual.html#cloze-templates), you need a field to contain the cloze content.  Out of convention it's a good idea to have the field name end in *Cloze* in case you want to use the plugin later.  Suppose you name it `ClozeExpression`, as suggested in the instructions.  Cloze content is entered in this field in a similar way as with Anki's Cloze Templates.  The only difference is that instead of the format `{{c1::text}}` you use `((c1::text))`.  You then need fields to enable each of the cloze cards.  So, suppose you want to support three clozes.  You would add fields `ClozeExpression1`, `ClozeExpression2`, and `ClozeExpression3`.  You enter any text you want into these fields to enable the corresponding cloze card.  Out of convention the plugin uses `1`.
+Similar to Anki's [Cloze Templates](https://apps.ankiweb.net/docs/manual.html#cloze-templates), you need a field to contain the cloze content.  Out of convention it's a good idea to have the field name end in *Cloze* in case you want to use the plugin later.  Suppose you name it `ExpressionCloze`, as suggested in the instructions.  Cloze content is entered in this field in a similar way as with Anki's Cloze Templates.  The only difference is that instead of the format `{{c1::text}}` you use `((c1::text))`.  You then need fields to enable each of the cloze cards.  So, suppose you want to support three clozes.  You would add fields `ExpressionCloze1`, `ExpressionCloze2`, and `ExpressionCloze3`.  You enter any text you want into these fields to enable the corresponding cloze card.  Out of convention the plugin uses `1`.
 
 For example, suppose you want to create cloze cards for each of the words in the expression *Ik heb honger*.  You would write the fields like so:
 
-![Ik heb honger fields](https://raw.githubusercontent.com/matthayes/anki_cloze_anything/master/images/ik_heb_honger.png)
+![Ik heb honger fields](https://raw.githubusercontent.com/matthayes/anki_cloze_anything/master/images/ik_heb_honger_fields.png)
 
 For an HTML rendering of this example, see [here](https://htmlpreview.github.io/?https://github.com/matthayes/anki_cloze_anything/blob/master/examples/front.html).
 
@@ -202,7 +204,7 @@ Note that this essentially is using cloze to make a Production card (i.e. given 
 
 #### Create Missing Cards
 
-This basically just makes sure the Cloze field is in sync with the corresponding fields responsible for card generation.  For example, if `ExpressionCloze` has `((c1::Ik)) ((c2::heb)) ((c3::honger)).` then this would ensure `ExpressionCloze1`, `ExpressionCloze2`, and `ExpressionCloze3` are each filled in with a `1`.  But `ExpressionCloze4` would be made blank, if it exists.  This action isn't generally necessary to use while using the plugin because the plugin ensures that these fields are updated as you change content.  But if something goes wrong or if you edit notes before using the plugin, this can be used to fix up the fields to be in sync.
+This basically just makes sure the Cloze field is in sync with the corresponding fields responsible for card generation.  For example, if `ExpressionCloze` has `((c1::Ik)) ((c2::heb)) ((c3::honger)).` then this would ensure `ExpressionCloze1`, `ExpressionCloze2`, and `ExpressionCloze3` are each filled in with a `1`.  But `ExpressionCloze4` would be made blank, if it exists.  This action isn't generally necessary to use while using the plugin because the plugin ensures that these fields are updated as you change content.  But if you do an import or if you edit notes before using the plugin, this can be used to fix up the fields to be in sync.
 
 ## Pros and Cons
 
@@ -216,12 +218,12 @@ Pros:
 Cons:
 
 * Relies on JavaScript, which works because Anki cards are treated like webpages. However, the Anki author notes that [Javascript functionality is provided without any support or warranty](https://apps.ankiweb.net/docs/manual.html#javascript).  So there is a very small chance that a future Anki update could impact card rendering and require changes in the template, which would be promptly carried out by me given my dependence on this approach working.
-* Because cloze functionality is implemented in templates, rather than Anki, the same template effectively needs to be copied to each card template.  The good news is you only need to do this setup once if you are setting up the templates manually.  If you use one of the shared decks then this doesn't impact you.
+* Because cloze functionality is implemented in templates, rather than Anki, the same template effectively needs to be copied to each card template.  Also if you make an edit to one of the cloze templates you need to copy the contents to the others as well.
 * Adding the `type:` prefix to enable type in the answer is not supported.
 
 ## Compatibility
 
-The card templates have been tested with Anki Desktop 2.1 and the latest version of Anki Mobile.  The card templates probably work with Anki Desktop 2.0, however I have not tried it yet.
+The card templates have been tested with Anki Desktop 2.1 and the latest version of Anki Mobile.  The card templates probably work with Anki Desktop 2.0, however I have not tried it yet.  I have not tested on Anki Droid.
 
 The plugin works with Anki Desktop 2.1.  I have no plans to add 2.0 support.
 
