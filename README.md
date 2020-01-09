@@ -36,9 +36,9 @@ For example, suppose you want to create cloze cards for each of the words in the
 
 For an HTML rendering of this example, see [here](https://htmlpreview.github.io/?https://github.com/matthayes/anki_cloze_anything/blob/master/examples/front.html).
 
-Because each of the cloze fields has a non-empty value of `1`, a card will be generated for each of `c1` through `c3`.  If you deleted the `1` from `ClozeExpression3` then a card will be generated for `c1` and `c2` only.
+Because each of the cloze fields has a non-empty value of `1`, a card will be generated for each of `c1` through `c3`.  If you deleted the `1` from `ExpressionCloze3` then a card will be generated for `c1` and `c2` only.
 
-Let's dig into how this all works.  The [instructions](https://github.com/matthayes/anki_cloze_anything/blob/master/docs/INSTRUCTIONS.md) referenced earlier have the following template for the first cloze card.  Notice that the entire content of the front of the card is surrounded by conditional tags based on `ExpressionCloze` and `ExpressionCloze1`.  This means that both fields must be non-empty for the card to be created, due to the way Anki card generation works.  So if either of these fields is empty, the corresponding card isn't generated.  The ommitted script simply looks at the number the value for `data-card` ends with and then updates the content within the cloze `<div>` accordingly.  So if the value of `data-card` is `ClozeExpression2` then it knows to hide the `((c2::text))` and show the others.
+Let's dig into how this all works.  The [instructions](https://github.com/matthayes/anki_cloze_anything/blob/master/docs/INSTRUCTIONS.md) referenced earlier have the following template for the first cloze card.  Notice that the entire content of the front of the card is surrounded by conditional tags based on `ExpressionCloze` and `ExpressionCloze1`.  This means that both fields must be non-empty for the card to be created, due to the way Anki card generation works.  So if either of these fields is empty, the corresponding card isn't generated.  The ommitted script simply looks at the number the value for `data-card` ends with and then updates the content within the cloze `<div>` accordingly.  So if the value of `data-card` is `ExpressionCloze2` then it knows to hide the `((c2::text))` and show the others.
 
 ```
 {{#ExpressionCloze}}
