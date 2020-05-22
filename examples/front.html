@@ -205,8 +205,13 @@ if (cardMatch) {
     var result = null;
     if (isBack) {
       // For the back card we need to strip out the surrounding characters used to mark those
-      // we are keeping.
-      result = strip_keep_chars(content);
+      // we are keeping.  We also wrap in a span in case we want to add styling.
+      if (clozeNum == currentClozeNum) {
+        result = wrap_span(strip_keep_chars(content), "current-cloze");
+      }
+      else {
+        result = strip_keep_chars(content);
+      }
     }
     else {
       if (clozeNum == currentClozeNum) {
