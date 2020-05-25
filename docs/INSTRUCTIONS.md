@@ -307,12 +307,9 @@ else if (isReveal) {
     var maxClozeNum = find_max_cloze(expContent);
     var nextClozeButton = document.getElementById("next-cloze");
     nextClozeButton.style.display = "block";
-    console.log(nextClozeButton.style.display)
 
     nextClozeButton.addEventListener("click", function(event) {
       currentClozeNum += 1;
-
-      console.log(currentClozeNum);
 
       if (currentClozeNum > maxClozeNum + 1) {
         currentClozeNum = 1;
