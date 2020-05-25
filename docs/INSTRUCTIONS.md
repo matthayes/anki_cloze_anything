@@ -2,6 +2,10 @@
 
 This guide walks you through how to setup the fields and card templates for the Cloze Anything approach.  Alternatively you can download one of the shared decks, for which I've already done this for you.
 
+You have two options for how to set up your cloze cards.  The first option is like the traditional cloze approach in Anki: a card is generated for each cloze. So one card is generated for `c1`, another for `c2`, etc.  The second approach is to generate only a single card and use a button on the question side of the card to cycle through the clozes and reveal them one-by-one.  These two approaches use almost the same card template.  We'll start with the traditional approach and then discuss what modifications to make for the click-to-reveal appraoch.
+
+## Traditional Approach
+
 First, decide on the name for your field that will hold your cloze content.  If you would like to use the plugin at some point to help you edit your notes then the name should end in *Cloze*, out of convention.  Otherwise there is no requirement for the field name.  For the remainder I'll assume you're using `ExpressionCloze` as the field name.  Create this field.
 
 **Note:** You can have more than one field with cloze content per note.  For example, you could have fields `Example1Cloze` and `Example2Cloze`.  Each can be used to generate cards.
@@ -49,6 +53,26 @@ var defaults = {
 
 var expEl = document.getElementById("cloze");
 var card = expEl.getAttribute("data-card");
+
+var cardMatch = card.match(/[^\d]+(\d+)$/);
+var isBack = !!document.getElementById("back");
+
+var currentClozeNum = null;
+var isReveal = false;
+
+if (cardMatch) {
+  currentClozeNum = parseInt(cardMatch[1]);
+}
+else if (card.match(/Reveal$/)) {
+  isReveal = true;
+
+  // When using the reveal feature, instead of having each cloze be a separate card, you reveal
+  // the clozes one-by-one on the front.  Typically by default you want to show everything before
+  // the current cloze and nothing after.
+  defaults.showAfter = "none";
+}
+
+var expContent = expEl.innerHTML;
 
 // Controls whether we show other clozes before/after the current cloze.
 // Valid values are: all, none, or a positive number
@@ -191,13 +215,20 @@ function replace_content(content, hint, classes) {
   return wrap_span(contentReplacement, classes);
 }
 
-var cardMatch = card.match(/[^\d]+(\d+)$/);
-var isBack = !!document.getElementById("back");
-if (cardMatch) {
-  var currentClozeNum = parseInt(cardMatch[1]);
-  var expContent = expEl.innerHTML;
+// Finds the largest cloze number.
+function find_max_cloze(content) {
+  var r = /\(\(c(\d+)::(.+?\)*)\)\)/g;
+  var m;
+  var result = [];
+  while (m = r.exec(content)) {
+    result.push(parseInt(m[1]));
+  }
+  var maxCloze = Math.max.apply(null, result);
+  return maxCloze;
+}
 
-  expEl.innerHTML = expContent.replace(/\(\(c(\d+)::(.+?\)*)\)\)/g,function(match, clozeNum, content) {
+function render_cloze(content, cloze_num_to_render, show_clozes) {
+  return content.replace(/\(\(c(\d+)::(.+?\)*)\)\)/g,function(match, clozeNum, content) {
     var contentSplit = content.split(/::/)
     var contentHint = null;
     clozeNum = parseInt(clozeNum);
@@ -206,22 +237,22 @@ if (cardMatch) {
       content = contentSplit[0]
     }
     var result = null;
-    if (isBack) {
+    if (!show_clozes) {
       // For the back card we need to strip out the surrounding characters used to mark those
       // we are keeping.
       result = strip_keep_chars(content);
     }
     else {
-      if (clozeNum == currentClozeNum) {
+      if (clozeNum == cloze_num_to_render) {
         result = replace_content(content, contentHint, "current-cloze");
       }
-      else if (clozeNum < currentClozeNum) {
+      else if (clozeNum < cloze_num_to_render) {
         if (showBeforeValue == "all") {
           result = strip_keep_chars(content);
         }
         else if (showBeforeValue.match(/^\d+$/)) {
           var showBeforeNum = parseInt(showBeforeValue);
-          if (currentClozeNum - clozeNum <= showBeforeNum) {
+          if (cloze_num_to_render - clozeNum <= showBeforeNum) {
             result = strip_keep_chars(content);
           }
           else {
@@ -232,13 +263,13 @@ if (cardMatch) {
           result = replace_content(content, contentHint, "other-cloze");
         }
       }
-      else if (clozeNum > currentClozeNum) {
+      else if (clozeNum > cloze_num_to_render) {
         if (showAfterValue == "all") {
           result = strip_keep_chars(content);
         }
         else if (showAfterValue.match(/^\d+$/)) {
           var showAfterNum = parseInt(showAfterValue);
-          if (clozeNum - currentClozeNum <= showAfterNum) {
+          if (clozeNum - cloze_num_to_render <= showAfterNum) {
             result = strip_keep_chars(content);
           }
           else {
@@ -256,6 +287,40 @@ if (cardMatch) {
 
     return result;
   });
+}
+
+if (currentClozeNum) {
+  var showClozes = !isBack;
+  expEl.innerHTML = render_cloze(expContent, currentClozeNum, showClozes)
+}
+else if (isReveal) {
+  var showClozes = !isBack;
+  currentClozeNum = 1;
+  if (isBack) {
+    expEl.innerHTML = render_cloze(expContent, currentClozeNum, showClozes)
+  }
+  else {
+    expEl.innerHTML = render_cloze(expContent, currentClozeNum, showClozes)
+  }
+
+  if (showClozes) {
+    var maxClozeNum = find_max_cloze(expContent);
+    var nextClozeButton = document.getElementById("next-cloze");
+    nextClozeButton.style.display = "block";
+    console.log(nextClozeButton.style.display)
+
+    nextClozeButton.addEventListener("click", function(event) {
+      currentClozeNum += 1;
+
+      console.log(currentClozeNum);
+
+      if (currentClozeNum > maxClozeNum + 1) {
+        currentClozeNum = 1;
+      }
+
+      expEl.innerHTML = render_cloze(expContent, currentClozeNum, showClozes);
+    });
+  }
 }
 </script>
 
@@ -288,3 +353,37 @@ Now repeat this for the remaining cloze fields.  That is, if you have field `Exp
 At this point you're done.
 
 Please refer to the top-level README for configuration options.
+
+## Click-To-Reveal Approach
+
+For this approach you don't need the additional fields `ExpressionCloze1`, `ExpressionCloze2`, etc. Create a card type named `ExpressionClozeReveal`.
+
+The Front Template should have the following content, which is the same as the traditional approach except `{{#ExpressionCloze1}}` and `{{/ExpressionCloze1}}` were removed and a button has been added.  The script is the same, so copy it from the traditional approach above.
+
+```
+{{#ExpressionCloze}}
+
+<div id="cloze" data-card="{{Card}}">
+{{ExpressionCloze}}
+</div>
+
+{{Meaning}}
+
+<div id="next-cloze" style="display:none">
+<button>Next</button>
+</div>
+
+<script>
+// Copy script from traditional approach.
+</script>
+
+{{/ExpressionCloze}}
+```
+
+The Back Template is the same as with the traditional approach:
+
+```
+<div id="back">
+{{FrontSide}}
+</div>
+```
