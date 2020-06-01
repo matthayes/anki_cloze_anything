@@ -281,6 +281,7 @@ For the styling, add the additonal content to whatever is already present:
 ```
 .current-cloze {
   color: blue;
+  font-weight: bold;
 }
 
 .other-cloze {
