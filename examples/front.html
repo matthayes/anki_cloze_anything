@@ -11,12 +11,23 @@
 </style>
 </head>
 <body>
-<div id="not-back">
+<div id="not-back" style="display:none">
 <div id="cloze" data-card="ExpressionCloze2">
 ((c1::Ik)) ((c2::heb)) ((c3::honger)).
 </div>
 I am hungry.
 </div>
-<script type="text/javascript" src="cloze_anything.js"></script>
+<script type="text/javascript">
+(function(doc) {
+    var script = doc.createElement('script');
+    script.type = 'text/javascript';
+    script.async = false;
+    script.onload = function(){
+        document.getElementById("not-back").style.display = "block";
+    };
+    script.src = "cloze_anything.js";
+    doc.getElementsByTagName('head')[0].appendChild(script);
+}(document));
+</script>
 </body>
 </html>
