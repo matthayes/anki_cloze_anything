@@ -1,6 +1,16 @@
 This is the plugin corresponding to the <a href="https://github.com/matthayes/anki_cloze_anything">Cloze Anything</a> project.  This plugin automates some of the otherwise manual work that would be required when following the approach of this project.  While this plugin is not necessary to follow this approach, it does make it a lot easier.  You may also be interested in the related <a href="https://ankiweb.net/shared/info/1637056056">shared deck</a> that includes sample cards utilizing the card templates.
 
-The <a href="https://github.com/matthayes/anki_cloze_anything">Cloze Anything</a> project provides a JavaScript-based cloze implementation that is completely independent from Anki's <a href="https://apps.ankiweb.net/docs/manual.html#cloze-deletion">Cloze Deletion</a> and does not require any modifications to Anki (via a plugin) for it to work.  This is achieved purely through JavaScript in the card template and a novel application of Anki's built-in (awesome) <a href="https://apps.ankiweb.net/docs/manual.html#selective-card-generation">Selective Card Generation</a>.  It has no dependency on Anki's Cloze note type nor any other note types.  It works on both Anki Desktop and Mobile.
+The <a href="https://github.com/matthayes/anki_cloze_anything">Cloze Anything</a> provides a template-based cloze implementation that:
+
+<ul>
+<li>is completely independent from Anki's <a href="https://apps.ankiweb.net/docs/manual.html#cloze-deletion">Cloze Deletion</a>,</li>
+<li>does not require any modifications to Anki (via a plugin) for it to work,</li>
+<li>and provides more flexibility in cloze card generation</li>
+</ul>
+
+This is achieved purely through JavaScript in the card template and a novel application of Anki's built-in (awesome) <a href="https://apps.ankiweb.net/docs/manual.html#selective-card-generation">Selective Card Generation</a> feature.  The big benefit of this is that you can generate cloze cards from existing notes, for which you may already have cards.  It has no dependency on Anki's Cloze note type nor any other note types, which means you don't have to migrate your cards to a new note type.  It is compatible with Anki Desktop, AnkiMobile, and AnkiDroid.
+
+Getting started is easy.  You can either download the <a href="https://ankiweb.net/shared/info/1637056056">shared deck</a> or follow the <a href="https://github.com/matthayes/anki_cloze_anything/blob/master/docs/INSTRUCTIONS.md">instructions</a> for setting up the templates manually.
 
 Replicating Anki functionality with JavaScript and card templates is not the goal however.  The goal is endless flexibility.  You can add cloze cards to any existing note type ("cloze anything") simply by adding new fields and card templates based on the instructions found here.  You can also modify the templates completely, using them simply as a guide.
 
