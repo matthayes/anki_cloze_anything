@@ -231,11 +231,19 @@ Cons:
 
 ## Compatibility
 
+### Anki Versions
+
 The card templates are compatible with Anki Desktop, AnkiMobile, and AnkiDroid.
 
 The plugin works with Anki Desktop 2.1.  I have no plans to add 2.0 support.
 
+### Other Plugins
+
 I have not yet tested interactions of the plugin with other cloze plugins such as [Cloze (Hide All)](https://ankiweb.net/shared/info/1709973686) and [Cloze Overlapper](https://ankiweb.net/shared/info/969733775).  If you encounter a problem please file an issue and I will do my best to fix it.
+
+The following plugins have been reported as having compatibility issues with this plugin:
+
+* [Customize Keyboard Shortcuts](https://ankiweb.net/shared/info/24411424) (Ctrl+Shift+C may not work correctly)
 
 ## Inspiration
 
