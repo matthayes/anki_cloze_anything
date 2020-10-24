@@ -166,6 +166,22 @@ Alternatively, for `data-cloze-show-before="all"` and `data-cloze-show-after="no
 
 ![hamlet2](https://raw.githubusercontent.com/matthayes/anki_cloze_anything/master/images/hamlet2.png)
 
+#### data-cloze-keep-regex
+
+This contains a regular expression that determines what parts of the text should not be replace with blanks, as if they were surrounded with backticks.  By default it contains basic Latin-script punctuation marks, which most users would want to show in the cloze.  A more comprehensive set of punctuation marks from different scripts can be set by using:
+
+```
+data-cloze-keep-regex="[!()+,./:;?{}¡«»¿׃‒–—‘’‚“”„‥…‧‹›♪⟨⟩ ⸮、。〈〉《》「」『』【】〝〟〽﹁﹂！（），：；？［］｛｝～\[\]]"
+```
+
+Thanks to the fact that this field is a regular expression, you can use it for all kinds for special scenarios.  For example, if you want to show the text from the beginning of the clause until the first colon, in addition to basic Latin-script punctuation, but hide everything else you can use:
+
+```
+data-cloze-keep-regex="^.*?:|[!,.:;?—–]"
+```
+
+This option has an effect only if `data-cloze-replace-same-length` is set.
+
 ### Overriding Configuration
 
 If you'd like to override any default configuration values for certain cards, one way to achieve this is

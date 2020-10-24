@@ -44,7 +44,8 @@ var defaults = {
   alwaysShowBlanks: "false",
   blanksFormat: "[{blanks}]",
   hintFormat: "[{hint}]",
-  blanksAndHintFormat: "[{blanks}|{hint}]"
+  blanksAndHintFormat: "[{blanks}|{hint}]",
+  keepRegex: /[!,.:;?—–]/,
 }
 
 var expEl = document.getElementById("cloze");
@@ -75,12 +76,22 @@ var hintFormat = expEl.getAttribute("data-cloze-hint-format") || defaults.hintFo
 // Format of the cloze when we are showing the blanks and a hint.
 var blanksAndHintFormat = expEl.getAttribute("data-cloze-blanks-and-hint-format") || defaults.blanksAndHintFormat;
 
+// A regular expression that determines what parts of the text should not be replace with blanks,
+// as if they were surrounded with backticks.
+var keepRegex;
+if (expEl.hasAttribute("data-cloze-keep-regex")) {
+  keepRegex = RegExp(expEl.getAttribute("data-cloze-keep-regex"));
+}
+else {
+  keepRegex = defaults.keepRegex;
+}
+
 // Identify characters in content that will not be replaced with blanks.
 var charKeepRegex = /(`.+?`)/
 var charKeepGlobalRegex = /(`.+?`)/g
 
 // Regex used to split on spaces so spaces can be preserved.
-var spaceSplit = /(\s+)/;
+var spaceSplit = /\s+/;
 
 // Matches diacritics so we can remove them for length computation purposes.
 var combiningDiacriticMarks = /[\u0300-\u036f]/g;
@@ -101,7 +112,7 @@ function replace_chars_with_blanks(content) {
   // Decompose so we can remove diacritics to compute an accurate length.  Otherwise
   // diacritics may contibute towards the length, which we don't want.
   content = content.normalize("NFD").replace(combiningDiacriticMarks, "");
-  var split = content.split(spaceSplit);
+  var split = content.split(RegExp("(" + spaceSplit.source + "|" + keepRegex.source + ")"));
   var parts = []
   split.forEach(function(p, i) {
     if (i % 2 == 0) {
