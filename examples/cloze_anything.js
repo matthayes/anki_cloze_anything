@@ -23,7 +23,7 @@ var defaults = {
   blanksFormat: "[{blanks}]",
   hintFormat: "[{hint}]",
   blanksAndHintFormat: "[{blanks}|{hint}]",
-  keepRegex: /[!,.:;?—–]/,
+  keepRegex: /[!,.:;?—–…]/,
 }
 
 var expEl = document.getElementById("cloze");
