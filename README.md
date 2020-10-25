@@ -168,7 +168,7 @@ Alternatively, for `data-cloze-show-before="all"` and `data-cloze-show-after="no
 
 #### data-cloze-keep-regex
 
-This contains a regular expression that determines what parts of the text should not be replace with blanks, as if they were surrounded with backticks.  By default it contains basic Latin-script punctuation marks, which most users would want to show in the cloze.  A more comprehensive set of punctuation marks from different scripts can be set by using:
+This contains a regular expression that determines what parts of the text should not be replaced with blanks, as if they were surrounded with backticks.  By default it contains basic Latin-script punctuation marks, which most users would want to show in the cloze.  A more comprehensive set of punctuation marks from different scripts can be set by using:
 
 ```
 data-cloze-keep-regex="[!()+,./:;?{}¡«»¿׃‒–—‘’‚“”„‥…‧‹›♪⟨⟩ ⸮、。〈〉《》「」『』【】〝〟〽﹁﹂！（），：；？［］｛｝～\[\]]"
