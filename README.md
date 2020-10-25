@@ -277,7 +277,8 @@ In addition to inspiration drawn from Anki's cloze system itself, there are a co
 
 * (2019-12-17) Initial release
 * (2019-12-24) Template now allows numbers within field names.
-* (2019-01-03) Additional configuration options.  Backticks to retain characters as hints.
+* (2020-01-03) Additional configuration options.  Backticks to retain characters as hints.
+* (2020-05-31) Add CSS for current cloze to highlight it on the back side of card.  Change font weight for current cloze to bold.  See <a href="https://github.com/matthayes/anki_cloze_anything/issues/7">Issue #7</a>
 
 ## License
 
