@@ -253,7 +253,10 @@ function render() {
     });
   }
 
-  expEl.classList.add("show");
+  var cardEls = document.getElementsByClassName("clozed-content");
+  if (cardEls.length > 0) {
+    cardEls[0].classList.add("show");
+  }
 }
 
-render();
+setTimeout(render, 0);

@@ -15,11 +15,14 @@ Create a card type named `ExpressionCloze1` (the same name as the first cloze de
 ```
 {{#ExpressionCloze}}
 {{#ExpressionCloze1}}
+
+<div class="clozed-content">
 <div id="cloze" data-card="{{Card}}">
 {{ExpressionCloze}}
 </div>
 
 {{Meaning}}
+</div>
 
 <script src="_cloze_anything.js"></script>
 
@@ -47,16 +50,16 @@ For the styling, add the additonal content to whatever is already present:
   color: grey;
 }
 
-#cloze {
+.clozed-content {
   display: none;
 }
 
-#cloze.show {
+.clozed-content.show {
   display: block;
 }
 ```
 
-The `#cloze` div is initially not displayed to give the JavaScript a chance to run and render the content.
+The `clozed-content` div is initially not displayed to give the JavaScript a chance to run and render the content.
 
 Now repeat this for the remaining cloze fields.  That is, if you have field `ExpressionCloze2`, then create a card template named `ExpressionCloze2` with the same content as `ExpressionCloze1` except with `{{#ExpressionCloze1}}` replaced with `{{#ExpressionCloze2}}` and `{{//ExpressionCloze1}}` replaced with `{{//ExpressionCloze2}}`.  Do the same for `ExpressionCloze3`, and so on.
 
