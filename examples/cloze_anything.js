@@ -1,5 +1,7 @@
 /*
-Copyright 2019-2020 Matthew Hayes
+Cloze Anything (Version 0.3)
+
+Copyright 2019-2021 Matthew Hayes
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -253,10 +255,17 @@ function render() {
     });
   }
 
-  var cardEls = document.getElementsByClassName("clozed-content");
-  if (cardEls.length > 0) {
-    cardEls[0].classList.add("show");
+  // The #cloze element and the surround div with the "clozed-content" class are
+  // initially hidden.  Now that rendering has completed, make them visible.
+  // Having them initially hidden avoids a potential situation where the clozed markup
+  // is temporarily visible before being processed.
+
+  var clozedContentEls = document.getElementsByClassName("clozed-content");
+  if (clozedContentEls.length > 0) {
+    clozedContentEls[0].classList.add("show");
   }
+
+  expEl.classList.add("show");
 }
 
-setTimeout(render, 0);
+render();
