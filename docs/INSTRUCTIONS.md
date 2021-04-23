@@ -53,19 +53,11 @@ For the styling, add the additonal content to whatever is already present:
 }
 
 #cloze {
-  display: none;
+  visibility: hidden;
 }
 
 #cloze.show {
-  display: block;
-}
-
-.clozed-content {
-  display: none;
-}
-
-.clozed-content.show {
-  display: block;
+  visibility: visible;
 }
 ```
 
