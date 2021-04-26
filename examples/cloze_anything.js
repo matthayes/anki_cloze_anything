@@ -67,8 +67,8 @@ else {
 }
 
 // Identify characters in content that will not be replaced with blanks.
-var charKeepRegex = /(`.+?`)/
-var charKeepGlobalRegex = /(`.+?`)/g
+var charKeepRegex = /(`[\s\S]+?`)/
+var charKeepGlobalRegex = /(`[\s\S]+?`)/g
 
 // Regex used to split on spaces so spaces can be preserved.
 var spaceSplit = /\s+/;
@@ -189,7 +189,7 @@ function render() {
     var currentClozeNum = parseInt(cardMatch[1]);
     var expContent = expEl.innerHTML;
 
-    expEl.innerHTML = expContent.replace(/\(\(c(\d+)::(.+?\)*)\)\)/g,function(match, clozeNum, content) {
+    expEl.innerHTML = expContent.replace(/\(\(c(\d+)::([\s\S]+?\)*)\)\)/g,function(match, clozeNum, content) {
       var contentSplit = content.split(/::/)
       var contentHint = null;
       clozeNum = parseInt(clozeNum);
