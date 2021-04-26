@@ -1,5 +1,7 @@
 /*
-Copyright 2019-2020 Matthew Hayes
+Cloze Anything (Version 0.3)
+
+Copyright 2019-2021 Matthew Hayes
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -180,74 +182,84 @@ function replace_content(content, hint, classes) {
   return wrap_span(contentReplacement, classes);
 }
 
-var cardMatch = card.match(/[^\d]+(\d+)$/);
-var isBack = !!document.getElementById("back");
-if (cardMatch) {
-  var currentClozeNum = parseInt(cardMatch[1]);
-  var expContent = expEl.innerHTML;
+function render() {
+  var cardMatch = card.match(/[^\d]+(\d+)$/);
+  var isBack = !!document.getElementById("back");
+  if (cardMatch) {
+    var currentClozeNum = parseInt(cardMatch[1]);
+    var expContent = expEl.innerHTML;
 
-  expEl.innerHTML = expContent.replace(/\(\(c(\d+)::([\s\S]+?\)*)\)\)/g,function(match, clozeNum, content) {
-    var contentSplit = content.split(/::/)
-    var contentHint = null;
-    clozeNum = parseInt(clozeNum);
-    if (contentSplit.length == 2) {
-      contentHint = contentSplit[1];
-      content = contentSplit[0]
-    }
-    var result = null;
-    if (isBack) {
-      // For the back card we need to strip out the surrounding characters used to mark those
-      // we are keeping.  We also wrap in a span in case we want to add styling.
-      if (clozeNum == currentClozeNum) {
-        result = wrap_span(strip_keep_chars(content), "current-cloze");
+    expEl.innerHTML = expContent.replace(/\(\(c(\d+)::([\s\S]+?\)*)\)\)/g,function(match, clozeNum, content) {
+      var contentSplit = content.split(/::/)
+      var contentHint = null;
+      clozeNum = parseInt(clozeNum);
+      if (contentSplit.length == 2) {
+        contentHint = contentSplit[1];
+        content = contentSplit[0]
       }
-      else {
-        result = strip_keep_chars(content);
-      }
-    }
-    else {
-      if (clozeNum == currentClozeNum) {
-        result = replace_content(content, contentHint, "current-cloze");
-      }
-      else if (clozeNum < currentClozeNum) {
-        if (showBeforeValue == "all") {
+      var result = null;
+      if (isBack) {
+        // For the back card we need to strip out the surrounding characters used to mark those
+        // we are keeping.  We also wrap in a span in case we want to add styling.
+        if (clozeNum == currentClozeNum) {
+          result = wrap_span(strip_keep_chars(content), "current-cloze");
+        }
+        else {
           result = strip_keep_chars(content);
         }
-        else if (showBeforeValue.match(/^\d+$/)) {
-          var showBeforeNum = parseInt(showBeforeValue);
-          if (currentClozeNum - clozeNum <= showBeforeNum) {
+      }
+      else {
+        if (clozeNum == currentClozeNum) {
+          result = replace_content(content, contentHint, "current-cloze");
+        }
+        else if (clozeNum < currentClozeNum) {
+          if (showBeforeValue == "all") {
             result = strip_keep_chars(content);
+          }
+          else if (showBeforeValue.match(/^\d+$/)) {
+            var showBeforeNum = parseInt(showBeforeValue);
+            if (currentClozeNum - clozeNum <= showBeforeNum) {
+              result = strip_keep_chars(content);
+            }
+            else {
+              result = replace_content(content, contentHint, "other-cloze");
+            }
+          }
+          else {
+            result = replace_content(content, contentHint, "other-cloze");
+          }
+        }
+        else if (clozeNum > currentClozeNum) {
+          if (showAfterValue == "all") {
+            result = strip_keep_chars(content);
+          }
+          else if (showAfterValue.match(/^\d+$/)) {
+            var showAfterNum = parseInt(showAfterValue);
+            if (clozeNum - currentClozeNum <= showAfterNum) {
+              result = strip_keep_chars(content);
+            }
+            else {
+              result = replace_content(content, contentHint, "other-cloze");
+            }
           }
           else {
             result = replace_content(content, contentHint, "other-cloze");
           }
         }
         else {
-          result = replace_content(content, contentHint, "other-cloze");
-        }
-      }
-      else if (clozeNum > currentClozeNum) {
-        if (showAfterValue == "all") {
           result = strip_keep_chars(content);
         }
-        else if (showAfterValue.match(/^\d+$/)) {
-          var showAfterNum = parseInt(showAfterValue);
-          if (clozeNum - currentClozeNum <= showAfterNum) {
-            result = strip_keep_chars(content);
-          }
-          else {
-            result = replace_content(content, contentHint, "other-cloze");
-          }
-        }
-        else {
-          result = replace_content(content, contentHint, "other-cloze");
-        }
       }
-      else {
-        result = strip_keep_chars(content);
-      }
-    }
 
-    return result;
-  });
+      return result;
+    });
+  }
+
+  // The #cloze element is initially hidden via CSS. Now that rendering has completed,
+  // make it visible. Having it initially hidden avoids a potential situation where the
+  // clozed markup is temporarily visible before being processed.
+
+  expEl.classList.add("show");
 }
+
+render();
