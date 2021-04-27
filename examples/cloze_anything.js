@@ -1,6 +1,4 @@
 /*
-Cloze Anything (Version 0.3)
-
 Copyright 2019-2021 Matthew Hayes
 
 Licensed under the Apache License, Version 2.0 (the "License");
