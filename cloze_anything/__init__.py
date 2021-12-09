@@ -335,22 +335,25 @@ def setup_editor_buttons(buttons, editor):
     def on_activated():
         onCloze(editor)
 
+    shortcut_key_seq ="Ctrl+Shift+W"
+    alt_shortcut_key_seq ="Ctrl+Alt+Shift+W"
+
     new_button = editor.addButton(
         func=onCloze,
         icon="text_cloze",
         cmd="cloze_anything",
-        tip="Cloze Anything")
+        tip=f"Cloze Anything ({shortcut_key_seq})")
 
     # cloze shortcut
     QShortcut(  # type: ignore
-        QKeySequence("Ctrl+Shift+W"),   # type: ignore
+        QKeySequence(shortcut_key_seq),   # type: ignore
         editor.widget,
         activated=on_activated,
     )
 
     # cloze shortcut, reusing highest cloze number
     QShortcut(  # type: ignore
-        QKeySequence("Ctrl+Alt+Shift+W"),   # type: ignore
+        QKeySequence(alt_shortcut_key_seq),   # type: ignore
         editor.widget,
         activated=on_activated,
     )

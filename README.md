@@ -272,6 +272,7 @@ In addition to inspiration drawn from Anki's cloze system itself, there are a co
 
 * 0.1 - Initial release (2019-12-17)
 * 0.2 - Add menu actions Auto-cloze Full Field and Create Missing Cards (2019-12-29)
+* 0.3 - Update to work with Anki 2.1.49 (2021-12-08).
 
 ## Template Releases
 
