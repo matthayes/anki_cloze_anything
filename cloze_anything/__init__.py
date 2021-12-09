@@ -15,9 +15,11 @@
 import json
 import re
 
+from aqt import gui_hooks
+from anki.consts import MODEL_CLOZE
 from anki.hooks import addHook, wrap
 from aqt.editor import Editor
-from aqt.qt import Qt
+from aqt.qt import *
 from aqt.utils import tooltip
 
 
@@ -40,7 +42,31 @@ def get_cloze_nums(content):
     return cloze_nums
 
 
-def update_cloze_fields(self, *, cloze_nums, cloze_field_name, model):
+def get_set_fields_command(editor, *, field_overrides=None):
+    """
+    Get data for note fields and create JavaScript command that will set the fields in the UI.
+
+    This is based on editor.loadNote, however it only sets the fields, rather than everything
+    else.
+
+    field_overrides can be set to override the current value for a field, thus ignoring whatever
+    value is found in the note.  This is needed in some cases because the note data may be stale
+    compared to the UI.  The UI has the most up to date field value, which may not yet be persisted
+    in the note.
+    """
+
+    data = []
+    for fld, val in editor.note.items():
+        if field_overrides and fld in field_overrides:
+            val = field_overrides[fld]
+        data.append((fld, editor.mw.col.media.escape_media_filenames(val)))
+
+    return "setFields({});".format(
+        json.dumps(data)
+    )
+
+
+def update_cloze_fields(self, *, cloze_nums, cloze_field_name, model) -> int:
     """
     Updates the numeric cloze fields for a particular note based on the content of the cloze field.
 
@@ -55,17 +81,15 @@ def update_cloze_fields(self, *, cloze_nums, cloze_field_name, model):
     the cloze cards.  If there are any other fields with cloze numbers not in this set, such as ClozeExpression3,
     then these will be set to empty so that no cloze card is generated.
 
-    In addition this also returns the JavaScript commands to update the UI so as to be consistent with the note.
-
     Arguments:
     - cloze_nums:       The set of cloze numbers present int the cloze field.
     - cloze_field_name: The name of the field with the clozed content.
     - model:            The model for the note.
 
-    Returns: tuple of JavaScript commands to update UI and the cloze numbers found in cloze fields.
+    Returns: A set of the clozes that were found.  For example, if ((c1::blah)) and ((c2::blah)) were in the string
+             then this would return {1, 2}.
     """
 
-    commands = []
     cloze_field_regex = re.compile("^" + re.escape(cloze_field_name) + r"(\d+)$")
     found_cloze_nums = set()
     for f in model["flds"]:
@@ -75,52 +99,52 @@ def update_cloze_fields(self, *, cloze_nums, cloze_field_name, model):
             found_cloze_nums.add(cloze_num)
             field_content = "1" if cloze_num in cloze_nums else "<br>"
 
-            # The note and the UI both need to be updated so they are consistent with one another.  We check
-            # that the content is either empty or "1" to avoid accidentally overwriting something unintended,
-            # as an extra safety precaution.
             if self.note.fields[f["ord"]].strip() in {"1", ""}:
                 self.note.fields[f["ord"]] = self.mungeHTML(field_content)
-                commands.append("""$("#f" + %d).html(%s)""" % (f["ord"], json.dumps(field_content)))
 
-    return (commands, found_cloze_nums)
+    return found_cloze_nums
 
 
-def onCloze(self, _old):
-    model = self.note.model()
-    # If the model is set up for cloze deletion, then defer to Anki's implementation.
-    if re.search('{{(.*:)*cloze:', model['tmpls'][0]['qfmt']):
-        return _old(self)
-    else:
+def onCloze(editor):
+    model = editor.note.model()
+    # This should do nothing for the standard cloze note type.
+    if not re.search('{{(.*:)*cloze:', model['tmpls'][0]['qfmt']):
         # Check if field is non-empty, in which case it can be clozed.
-        if self.note.fields[self.currentField]:
-            current_field_name = model["flds"][self.currentField]["name"]
+        if editor.note.fields[editor.currentField]:
+            current_field_name = model["flds"][editor.currentField]["name"]
             if current_field_name.endswith("Cloze"):
-                content = self.note.fields[self.currentField]
+                content = editor.note.fields[editor.currentField]
                 cloze_nums = get_cloze_nums(content)
 
                 # Determine what cloze number the currently highlighted text should get.
                 if cloze_nums:
                     next_cloze_num = max(cloze_nums)
                     # Unless we are reusing, then increment to the next greatest cloze number.
-                    if not self.mw.app.keyboardModifiers() & Qt.AltModifier:
+                    if not editor.mw.app.keyboardModifiers() & Qt.AltModifier:
                         next_cloze_num += 1
                 else:
                     next_cloze_num = 1
 
-                commands = [
-                    "wrap('((c{}::', '))')".format(next_cloze_num)
-                ]
+                wrap_command = "wrap('((c{}::', '))');".format(next_cloze_num)
 
                 cloze_nums.add(next_cloze_num)
 
-                cloze_field_update_commands, found_cloze_nums = \
-                    update_cloze_fields(self, cloze_nums=cloze_nums, cloze_field_name=current_field_name, model=model)
+                found_cloze_nums = update_cloze_fields(editor, cloze_nums=cloze_nums, cloze_field_name=current_field_name,
+                                                       model=model)
 
-                commands.extend(cloze_field_update_commands)
+                if not editor.addMode:
+                    editor._save_current_note()
 
                 missing_cloze_num = cloze_nums - found_cloze_nums
 
-                self.web.eval(";".join(commands) + ";")
+                # There doesn't seem to be an easy way to programmatically update the editor with some arbitrary content
+                # due to how this is set up in OldEditorAdapter.svelte.
+                # It seems the best way is to call setField with all the note data, which is basically like reloading the
+                # editor with all the note content.  The downside is that the focus is reset to the beginning of the field.
+                def callback(arg):
+                    editor.web.eval(get_set_fields_command(editor))
+
+                editor.web.evalWithCallback(wrap_command, callback)
 
                 if missing_cloze_num:
                     tooltip("Not enough cloze fields.  Missing: {}".format(", ".join(
@@ -132,13 +156,13 @@ def onCloze(self, _old):
             # copy from another field without Cloze.  For example, when ExpressionCloze is the current
             # field and it is empty, we will copy from the Expression field.
 
-            current_field_name = model["flds"][self.currentField]["name"]
+            current_field_name = model["flds"][editor.currentField]["name"]
             if current_field_name.endswith("Cloze"):
                 other_field_name = current_field_name[:-len("Cloze")]
                 other_field_name_ord = next((f["ord"] for f in model["flds"] if f["name"] == other_field_name), None)
                 if other_field_name_ord is not None:
-                    content = self.note.fields[other_field_name_ord]
-                    self.web.eval("setFormat('inserthtml', {});".format(json.dumps(content)))
+                    content = editor.note.fields[other_field_name_ord]
+                    editor.web.eval("setFormat('inserthtml', {});".format(json.dumps(content)))
                 else:
                     tooltip("Cannot populate empty field {} because other field {} was not found to copy from".format(
                             current_field_name, other_field_name))
@@ -157,6 +181,10 @@ def onBridgeCmd(*args, **kwargs):
     cmd = args[1]
 
     try:
+        # Update the numeric cloze fields to be consisent with the current state of the clozed expression whenever
+        # a blur or key event occurs on the clozed expression field.
+        # - A "blur" command happens when the field loses focus.
+        # - A "key" command happens when the field still has focus but some seconds elapsed since the last key press.
         if self.note and (cmd.startswith("blur:") or cmd.startswith("key:")):
             _, field_idx, nid, content = cmd.split(":", 3)
             field_idx = int(field_idx)
@@ -165,15 +193,31 @@ def onBridgeCmd(*args, **kwargs):
             except ValueError:
                 nid = None
 
+            # TODO This doesn't work when adding a note because the new note won't have a note ID.  This means that we can't
+            # ensure consistency between the clozed expression and numeric cloze fields when blur or key events occur.
+
             if nid and nid == self.note.id:
                 model = self.note.model()
                 current_field_name = model["flds"][field_idx]["name"]
                 if current_field_name.endswith("Cloze"):
                     cloze_nums = get_cloze_nums(content)
-                    commands, _ = \
-                        update_cloze_fields(self, cloze_nums=cloze_nums, cloze_field_name=current_field_name,
-                                            model=model)
-                    self.web.eval(";".join(commands) + ";")
+
+                    update_cloze_fields(self, cloze_nums=cloze_nums, cloze_field_name=current_field_name,
+                                        model=model)
+
+                    # Update the numeric cloze fields in the UI by executing a setFields JavaScript command with the note's field values.
+                    # This makes the UI consistent with the note field values we just set above.
+                    # We need to provide the current content when getting the command to set the field names due to a possible a race condition.
+                    # Typing in the field updates the note after a delay.  But losing focus causes a blur event without delay.
+                    # If you type in a field and then immediately hit tab to have the field lose focus, the timing of these two events would result
+                    # in an inconsistent state.
+                    # get_set_fields_command uses the current value of the fields when generating the command.  Due to the field update being delayed,
+                    # this data can be out of date.  The blur command has the most current value, so we override with it.
+                    # We can only execute this command for blur events, not key events.  The reason is that setting the fields causes the editor
+                    # to lose focus, which would be annoying while typing.  We need a way to selectively update fields, but at the moment Anki
+                    # only provides a way to update them all together.
+                    if cmd.startswith("blur:"):
+                        self.web.eval(get_set_fields_command(self, field_overrides={current_field_name: content}))
     except Exception:
         # Suppress any exceptions so we don't break Anki.
         pass
@@ -285,10 +329,36 @@ def setup_menus(browser):
         lambda _: create_missing(browser))
 
 
+def setup_editor_buttons(buttons, editor):
+    # TODO find a way to hide the button if the note hasn't been set up for Cloze Anything
+
+    def on_activated():
+        onCloze(editor)
+
+    new_button = editor.addButton(
+        func=onCloze,
+        icon="text_cloze",
+        cmd="cloze_anything",
+        tip="Cloze Anything")
+
+    # cloze shortcut
+    QShortcut(  # type: ignore
+        QKeySequence("Ctrl+Shift+W"),   # type: ignore
+        editor.widget,
+        activated=on_activated,
+    )
+
+    # cloze shortcut, reusing highest cloze number
+    QShortcut(  # type: ignore
+        QKeySequence("Ctrl+Alt+Shift+W"),   # type: ignore
+        editor.widget,
+        activated=on_activated,
+    )
+
+    return buttons + [new_button]
+
 def setup():
-    # Note: cannot wrap onCloze because it is referenced within Anki by _links before the wrap here
-    # takes effect, so the wrap won't work.
-    Editor._onCloze = wrap(Editor._onCloze, onCloze, "around")
     Editor.onBridgeCmd = wrap(Editor.onBridgeCmd, onBridgeCmd, "around")
 
     addHook("browser.setupMenus", setup_menus)
+    addHook("setupEditorButtons", setup_editor_buttons)
