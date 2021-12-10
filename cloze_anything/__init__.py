@@ -127,7 +127,7 @@ def onCloze(editor):
                 else:
                     next_cloze_num = 1
 
-                wrap_command = "surround('((c{}::', '))');".format(next_cloze_num)
+                wrap_command = "wrap('((c{}::', '))');".format(next_cloze_num)
 
                 cloze_nums.add(next_cloze_num)
 
