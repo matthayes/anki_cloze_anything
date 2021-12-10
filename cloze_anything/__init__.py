@@ -33,7 +33,7 @@ def get_cloze_nums(content):
 
     This would return {1, 2}.
     """
-    match = re.findall(r"\(\(c(\d+)::.+?\)\)", content)
+    match = re.findall(r"\(\(c(\d+)::[^(]+?\)\)", content)
     if match:
         cloze_nums = {int(x) for x in match}
     else:
@@ -90,6 +90,7 @@ def update_cloze_fields(self, *, cloze_nums, cloze_field_name, model) -> int:
              then this would return {1, 2}.
     """
 
+    commands = []
     cloze_field_regex = re.compile("^" + re.escape(cloze_field_name) + r"(\d+)$")
     found_cloze_nums = set()
     for f in model["flds"]:
@@ -97,12 +98,13 @@ def update_cloze_fields(self, *, cloze_nums, cloze_field_name, model) -> int:
         if match:
             cloze_num = int(match.group(1))
             found_cloze_nums.add(cloze_num)
-            field_content = "1" if cloze_num in cloze_nums else "<br>"
+            field_content = "1" if cloze_num in cloze_nums else ""
 
             if self.note.fields[f["ord"]].strip() in {"1", ""}:
-                self.note.fields[f["ord"]] = self.mungeHTML(field_content)
+                self.note.fields[f["ord"]] = field_content
+                commands.append("""setField({}, {})""".format(f["ord"], json.dumps(field_content)))
 
-    return found_cloze_nums
+    return (commands, found_cloze_nums)
 
 
 def onCloze(editor):
@@ -129,8 +131,8 @@ def onCloze(editor):
 
                 cloze_nums.add(next_cloze_num)
 
-                found_cloze_nums = update_cloze_fields(editor, cloze_nums=cloze_nums, cloze_field_name=current_field_name,
-                                                       model=model)
+                update_cloze_fields_commands, found_cloze_nums = update_cloze_fields(editor, cloze_nums=cloze_nums, cloze_field_name=current_field_name,
+                                                                                       model=model)
 
                 if not editor.addMode:
                     editor._save_current_note()
@@ -142,7 +144,9 @@ def onCloze(editor):
                 # It seems the best way is to call setField with all the note data, which is basically like reloading the
                 # editor with all the note content.  The downside is that the focus is reset to the beginning of the field.
                 def callback(arg):
-                    editor.web.eval(get_set_fields_command(editor))
+                    editor.web.eval(";".join(update_cloze_fields_commands))
+
+                tooltip(wrap_command)
 
                 editor.web.evalWithCallback(wrap_command, callback)
 
@@ -197,13 +201,14 @@ def onBridgeCmd(*args, **kwargs):
             # ensure consistency between the clozed expression and numeric cloze fields when blur or key events occur.
 
             if nid and nid == self.note.id:
+                # TODO use note_type instead.  model is deprecated.
                 model = self.note.model()
                 current_field_name = model["flds"][field_idx]["name"]
                 if current_field_name.endswith("Cloze"):
                     cloze_nums = get_cloze_nums(content)
 
-                    update_cloze_fields(self, cloze_nums=cloze_nums, cloze_field_name=current_field_name,
-                                        model=model)
+                    update_cloze_fields_commands, _ = update_cloze_fields(self, cloze_nums=cloze_nums, cloze_field_name=current_field_name,
+                                                                          model=model)
 
                     # Update the numeric cloze fields in the UI by executing a setFields JavaScript command with the note's field values.
                     # This makes the UI consistent with the note field values we just set above.
@@ -216,8 +221,7 @@ def onBridgeCmd(*args, **kwargs):
                     # We can only execute this command for blur events, not key events.  The reason is that setting the fields causes the editor
                     # to lose focus, which would be annoying while typing.  We need a way to selectively update fields, but at the moment Anki
                     # only provides a way to update them all together.
-                    if cmd.startswith("blur:"):
-                        self.web.eval(get_set_fields_command(self, field_overrides={current_field_name: content}))
+                    self.web.eval(";".join(update_cloze_fields_commands))
     except Exception:
         # Suppress any exceptions so we don't break Anki.
         pass
