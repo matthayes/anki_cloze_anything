@@ -43,30 +43,6 @@ def get_cloze_nums(content):
     return cloze_nums
 
 
-# def get_set_fields_command(editor, *, field_overrides=None):
-#     """
-#     Get data for note fields and create JavaScript command that will set the fields in the UI.
-
-#     This is based on editor.loadNote, however it only sets the fields, rather than everything
-#     else.
-
-#     field_overrides can be set to override the current value for a field, thus ignoring whatever
-#     value is found in the note.  This is needed in some cases because the note data may be stale
-#     compared to the UI.  The UI has the most up to date field value, which may not yet be persisted
-#     in the note.
-#     """
-
-#     data = []
-#     for fld, val in editor.note.items():
-#         if field_overrides and fld in field_overrides:
-#             val = field_overrides[fld]
-#         data.append((fld, editor.mw.col.media.escape_media_filenames(val)))
-
-#     return "setFields({});".format(
-#         json.dumps(data)
-#     )
-
-
 def async_js(js):
     """
     Return an immediately invoked async function expression.
@@ -114,8 +90,12 @@ def update_cloze_fields(editor, *, cloze_nums, cloze_field_name, note_type) -> T
             field_content = "1" if cloze_num in cloze_nums else ""
 
             if editor.note.fields[f["ord"]].strip() in {"1", ""}:
-                editor.note.fields[f["ord"]] = field_content
                 commands.append(f"""noteEditor.fields[{f["ord"]}].editingArea.content.set("{field_content}");""")
+
+                # For redundancy, also set the note with the new content.  It seems that setting the content in JavaScript
+                # does not consistently result in the note being updated, perhaps because multiple fields are being set
+                # quickly in succession.
+                editor.note.fields[f["ord"]] = field_content
 
     command = ""
     if commands:
@@ -129,14 +109,12 @@ def onCloze(editor):
     note_type = editor.note.note_type()
 
     # This should do nothing for the standard cloze note type.
-    if not re.search('{{(.*:)*cloze:', note_type['tmpls'][0]['qfmt']):
+    if editor.currentField and not re.search('{{(.*:)*cloze:', note_type['tmpls'][0]['qfmt']):
         # Check if field is non-empty, in which case it can be clozed.
         if editor.note.fields[editor.currentField]:
             current_field_name = note_type["flds"][editor.currentField]["name"]
             if current_field_name.endswith("Cloze"):
                 content = editor.note.fields[editor.currentField]
-                # TODO why is content here stale after clozing?
-                # tooltip(content)
                 cloze_nums = get_cloze_nums(content)
 
                 # Determine what cloze number the currently highlighted text should get.
@@ -148,32 +126,8 @@ def onCloze(editor):
                 else:
                     next_cloze_num = 1
 
-                wrap_command = "wrap('((c{}::', '))');".format(next_cloze_num)
+                editor.web.eval("wrap('((c{}::', '))');".format(next_cloze_num))
 
-                cloze_nums.add(next_cloze_num)
-
-                update_cloze_fields_command, found_cloze_nums = update_cloze_fields(editor, cloze_nums=cloze_nums, cloze_field_name=current_field_name,
-                                                                                    note_type=note_type)
-
-                # tooltip(update_cloze_fields_command)
-
-                missing_cloze_num = cloze_nums - found_cloze_nums
-
-                # There doesn't seem to be an easy way to programmatically update the editor with some arbitrary content
-                # due to how this is set up in OldEditorAdapter.svelte.
-                # It seems the best way is to call setField with all the note data, which is basically like reloading the
-                # editor with all the note content.  The downside is that the focus is reset to the beginning of the field.
-                def callback(arg):
-                    editor.web.eval(update_cloze_fields_command)
-
-                # TODO remove
-                # tooltip(wrap_command)
-
-                editor.web.evalWithCallback(wrap_command, callback)
-
-                if missing_cloze_num:
-                    tooltip("Not enough cloze fields.  Missing: {}".format(", ".join(
-                        current_field_name + str(n) for n in sorted(missing_cloze_num))))
             else:
                 tooltip("Cannot cloze unless field ends in name Cloze")
         else:
@@ -225,23 +179,21 @@ def onBridgeCmd(*args, **kwargs):
                 note_type = self.note.note_type()
                 current_field_name = note_type["flds"][field_idx]["name"]
                 if current_field_name.endswith("Cloze"):
+
                     cloze_nums = get_cloze_nums(content)
 
-                    update_cloze_fields_command, _ = update_cloze_fields(self, cloze_nums=cloze_nums, cloze_field_name=current_field_name,
-                                                                         note_type=note_type)
+                    update_cloze_fields_command, found_cloze_nums = update_cloze_fields(self, cloze_nums=cloze_nums, cloze_field_name=current_field_name,
+                                                                                        note_type=note_type)
 
                     # Update the numeric cloze fields in the UI by executing a setFields JavaScript command with the note's field values.
                     # This makes the UI consistent with the note field values we just set above.
-                    # We need to provide the current content when getting the command to set the field names due to a possible a race condition.
-                    # Typing in the field updates the note after a delay.  But losing focus causes a blur event without delay.
-                    # If you type in a field and then immediately hit tab to have the field lose focus, the timing of these two events would result
-                    # in an inconsistent state.
-                    # get_set_fields_command uses the current value of the fields when generating the command.  Due to the field update being delayed,
-                    # this data can be out of date.  The blur command has the most current value, so we override with it.
-                    # We can only execute this command for blur events, not key events.  The reason is that setting the fields causes the editor
-                    # to lose focus, which would be annoying while typing.  We need a way to selectively update fields, but at the moment Anki
-                    # only provides a way to update them all together.
                     self.web.eval(update_cloze_fields_command)
+
+                    missing_cloze_num = cloze_nums - found_cloze_nums
+
+                    if missing_cloze_num:
+                        tooltip("Not enough cloze fields.  Missing: {}".format(", ".join(
+                            current_field_name + str(n) for n in sorted(missing_cloze_num))))
     except Exception:
         # Suppress any exceptions so we don't break Anki.
         pass
