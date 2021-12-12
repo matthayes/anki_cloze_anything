@@ -14,6 +14,7 @@
 
 import json
 import re
+from typing import Tuple
 
 from aqt import gui_hooks
 from anki.consts import MODEL_CLOZE
@@ -42,31 +43,43 @@ def get_cloze_nums(content):
     return cloze_nums
 
 
-def get_set_fields_command(editor, *, field_overrides=None):
+# def get_set_fields_command(editor, *, field_overrides=None):
+#     """
+#     Get data for note fields and create JavaScript command that will set the fields in the UI.
+
+#     This is based on editor.loadNote, however it only sets the fields, rather than everything
+#     else.
+
+#     field_overrides can be set to override the current value for a field, thus ignoring whatever
+#     value is found in the note.  This is needed in some cases because the note data may be stale
+#     compared to the UI.  The UI has the most up to date field value, which may not yet be persisted
+#     in the note.
+#     """
+
+#     data = []
+#     for fld, val in editor.note.items():
+#         if field_overrides and fld in field_overrides:
+#             val = field_overrides[fld]
+#         data.append((fld, editor.mw.col.media.escape_media_filenames(val)))
+
+#     return "setFields({});".format(
+#         json.dumps(data)
+#     )
+
+
+def async_js(js):
     """
-    Get data for note fields and create JavaScript command that will set the fields in the UI.
+    Return an immediately invoked async function expression.
 
-    This is based on editor.loadNote, however it only sets the fields, rather than everything
-    else.
-
-    field_overrides can be set to override the current value for a field, thus ignoring whatever
-    value is found in the note.  This is needed in some cases because the note data may be stale
-    compared to the UI.  The UI has the most up to date field value, which may not yet be persisted
-    in the note.
+    https://github.com/ankitects/anki/pull/1553#issuecomment-991807369
+    """
+    return f"""(async () => {{
+        {js}
+    }})();
     """
 
-    data = []
-    for fld, val in editor.note.items():
-        if field_overrides and fld in field_overrides:
-            val = field_overrides[fld]
-        data.append((fld, editor.mw.col.media.escape_media_filenames(val)))
 
-    return "setFields({});".format(
-        json.dumps(data)
-    )
-
-
-def update_cloze_fields(self, *, cloze_nums, cloze_field_name, model) -> int:
+def update_cloze_fields(editor, *, cloze_nums, cloze_field_name, note_type) -> Tuple[str, int]:
     """
     Updates the numeric cloze fields for a particular note based on the content of the cloze field.
 
@@ -84,45 +97,53 @@ def update_cloze_fields(self, *, cloze_nums, cloze_field_name, model) -> int:
     Arguments:
     - cloze_nums:       The set of cloze numbers present int the cloze field.
     - cloze_field_name: The name of the field with the clozed content.
-    - model:            The model for the note.
+    - note_type:        The model for the note.
 
-    Returns: A set of the clozes that were found.  For example, if ((c1::blah)) and ((c2::blah)) were in the string
-             then this would return {1, 2}.
+    Returns: JavaScript to run to update the UI, and a set of the clozes that were found.
+             For example, if ((c1::blah)) and ((c2::blah)) were in the string then this would return {1, 2}.
     """
 
     commands = []
     cloze_field_regex = re.compile("^" + re.escape(cloze_field_name) + r"(\d+)$")
     found_cloze_nums = set()
-    for f in model["flds"]:
+    for f in note_type["flds"]:
         match = cloze_field_regex.match(f["name"])
         if match:
             cloze_num = int(match.group(1))
             found_cloze_nums.add(cloze_num)
             field_content = "1" if cloze_num in cloze_nums else ""
 
-            if self.note.fields[f["ord"]].strip() in {"1", ""}:
-                self.note.fields[f["ord"]] = field_content
-                commands.append("""setField({}, {})""".format(f["ord"], json.dumps(field_content)))
+            if editor.note.fields[f["ord"]].strip() in {"1", ""}:
+                editor.note.fields[f["ord"]] = field_content
+                commands.append(f"""noteEditor.fields[{f["ord"]}].editingArea.content.set("{field_content}");""")
 
-    return (commands, found_cloze_nums)
+    command = ""
+    if commands:
+        commands = ["const noteEditor = await noteEditorPromise;"] + commands
+        command = async_js("\n".join(commands))
+
+    return (command, found_cloze_nums)
 
 
 def onCloze(editor):
-    model = editor.note.model()
+    note_type = editor.note.note_type()
+
     # This should do nothing for the standard cloze note type.
-    if not re.search('{{(.*:)*cloze:', model['tmpls'][0]['qfmt']):
+    if not re.search('{{(.*:)*cloze:', note_type['tmpls'][0]['qfmt']):
         # Check if field is non-empty, in which case it can be clozed.
         if editor.note.fields[editor.currentField]:
-            current_field_name = model["flds"][editor.currentField]["name"]
+            current_field_name = note_type["flds"][editor.currentField]["name"]
             if current_field_name.endswith("Cloze"):
                 content = editor.note.fields[editor.currentField]
+                # TODO why is content here stale after clozing?
+                # tooltip(content)
                 cloze_nums = get_cloze_nums(content)
 
                 # Determine what cloze number the currently highlighted text should get.
                 if cloze_nums:
                     next_cloze_num = max(cloze_nums)
                     # Unless we are reusing, then increment to the next greatest cloze number.
-                    if not editor.mw.app.keyboardModifiers() & Qt.AltModifier:
+                    if not editor.mw.app.keyboardModifiers() & Qt.KeyboardModifier.AltModifier:
                         next_cloze_num += 1
                 else:
                     next_cloze_num = 1
@@ -131,11 +152,10 @@ def onCloze(editor):
 
                 cloze_nums.add(next_cloze_num)
 
-                update_cloze_fields_commands, found_cloze_nums = update_cloze_fields(editor, cloze_nums=cloze_nums, cloze_field_name=current_field_name,
-                                                                                       model=model)
+                update_cloze_fields_command, found_cloze_nums = update_cloze_fields(editor, cloze_nums=cloze_nums, cloze_field_name=current_field_name,
+                                                                                    note_type=note_type)
 
-                if not editor.addMode:
-                    editor._save_current_note()
+                # tooltip(update_cloze_fields_command)
 
                 missing_cloze_num = cloze_nums - found_cloze_nums
 
@@ -144,9 +164,10 @@ def onCloze(editor):
                 # It seems the best way is to call setField with all the note data, which is basically like reloading the
                 # editor with all the note content.  The downside is that the focus is reset to the beginning of the field.
                 def callback(arg):
-                    editor.web.eval(";".join(update_cloze_fields_commands))
+                    editor.web.eval(update_cloze_fields_command)
 
-                tooltip(wrap_command)
+                # TODO remove
+                # tooltip(wrap_command)
 
                 editor.web.evalWithCallback(wrap_command, callback)
 
@@ -160,10 +181,10 @@ def onCloze(editor):
             # copy from another field without Cloze.  For example, when ExpressionCloze is the current
             # field and it is empty, we will copy from the Expression field.
 
-            current_field_name = model["flds"][editor.currentField]["name"]
+            current_field_name = note_type["flds"][editor.currentField]["name"]
             if current_field_name.endswith("Cloze"):
                 other_field_name = current_field_name[:-len("Cloze")]
-                other_field_name_ord = next((f["ord"] for f in model["flds"] if f["name"] == other_field_name), None)
+                other_field_name_ord = next((f["ord"] for f in note_type["flds"] if f["name"] == other_field_name), None)
                 if other_field_name_ord is not None:
                     content = editor.note.fields[other_field_name_ord]
                     editor.web.eval("setFormat('inserthtml', {});".format(json.dumps(content)))
@@ -201,14 +222,13 @@ def onBridgeCmd(*args, **kwargs):
             # ensure consistency between the clozed expression and numeric cloze fields when blur or key events occur.
 
             if nid and nid == self.note.id:
-                # TODO use note_type instead.  model is deprecated.
-                model = self.note.model()
-                current_field_name = model["flds"][field_idx]["name"]
+                note_type = self.note.note_type()
+                current_field_name = note_type["flds"][field_idx]["name"]
                 if current_field_name.endswith("Cloze"):
                     cloze_nums = get_cloze_nums(content)
 
-                    update_cloze_fields_commands, _ = update_cloze_fields(self, cloze_nums=cloze_nums, cloze_field_name=current_field_name,
-                                                                          model=model)
+                    update_cloze_fields_command, _ = update_cloze_fields(self, cloze_nums=cloze_nums, cloze_field_name=current_field_name,
+                                                                         note_type=note_type)
 
                     # Update the numeric cloze fields in the UI by executing a setFields JavaScript command with the note's field values.
                     # This makes the UI consistent with the note field values we just set above.
@@ -221,7 +241,7 @@ def onBridgeCmd(*args, **kwargs):
                     # We can only execute this command for blur events, not key events.  The reason is that setting the fields causes the editor
                     # to lose focus, which would be annoying while typing.  We need a way to selectively update fields, but at the moment Anki
                     # only provides a way to update them all together.
-                    self.web.eval(";".join(update_cloze_fields_commands))
+                    self.web.eval(update_cloze_fields_command)
     except Exception:
         # Suppress any exceptions so we don't break Anki.
         pass
@@ -245,16 +265,16 @@ def auto_cloze(browser):
         browser.model.beginReset()
         for nid in nids:
             note = browser.mw.col.getNote(nid)
-            model = note.model()
-            for f in model["flds"]:
+            note_type = note.note_type()
+            for f in note_type["flds"]:
                 field_name = f["name"]
                 field_ord = f["ord"]
                 # Fields ending with Cloze that are empty can be automatically filled in
                 if field_name.endswith("Cloze") and not note.fields[field_ord].strip():
                     other_field_name = field_name[:-len("Cloze")]
-                    other_field_name_ord = next((f["ord"] for f in model["flds"] if f["name"] == other_field_name),
+                    other_field_name_ord = next((f["ord"] for f in note_type["flds"] if f["name"] == other_field_name),
                                                 None)
-                    field_name1_ord = next((f["ord"] for f in model["flds"] if f["name"] == field_name + "1"),
+                    field_name1_ord = next((f["ord"] for f in note_type["flds"] if f["name"] == field_name + "1"),
                                            None)
                     # Automatically copy from other field without the Cloze suffix
                     if other_field_name_ord is not None and field_name1_ord is not None and \
@@ -293,8 +313,8 @@ def create_missing(browser):
         browser.model.beginReset()
         for nid in nids:
             note = browser.mw.col.getNote(nid)
-            model = note.model()
-            for f in model["flds"]:
+            note_type = note.note_type()
+            for f in note_type["flds"]:
                 field_name = f["name"]
                 field_ord = f["ord"]
                 # Fields ending with Cloze that are empty can be automatically filled in
@@ -302,7 +322,7 @@ def create_missing(browser):
                     cloze_nums = get_cloze_nums(note.fields[field_ord])
                     cloze_field_regex = re.compile("^" + re.escape(field_name) + r"(\d+)$")
                     updated = False
-                    for f in model["flds"]:
+                    for f in note_type["flds"]:
                         match = cloze_field_regex.match(f["name"])
                         if match:
                             cloze_num = int(match.group(1))
