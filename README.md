@@ -260,6 +260,7 @@ I have not yet tested interactions of the plugin with other cloze plugins such a
 The following plugins have been reported as having compatibility issues with this plugin:
 
 * [Customize Keyboard Shortcuts](https://ankiweb.net/shared/info/24411424) (Ctrl+Shift+C may not work correctly)
+* [Resize images in editor](https://ankiweb.net/shared/info/1103084694)
 
 ## Inspiration
 
