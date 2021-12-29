@@ -44,7 +44,7 @@ For example, suppose you want to create cloze cards for each of the words in the
 
 ![Ik heb honger fields](https://raw.githubusercontent.com/matthayes/anki_cloze_anything/master/images/ik_heb_honger_fields.png)
 
-For an HTML rendering of this example, see [here](https://htmlpreview.github.io/?https://github.com/matthayes/anki_cloze_anything/blob/master/examples/front.html).
+For an HTML rendering of this example, see [front](https://htmlpreview.github.io/?https://github.com/matthayes/anki_cloze_anything/blob/master/examples/front.html) and [back](https://htmlpreview.github.io/?https://github.com/matthayes/anki_cloze_anything/blob/master/examples/back.html) card examples.
 
 Because each of the cloze fields has a non-empty value of `1`, a card will be generated for each of `c1` through `c3`.  If you deleted the `1` from `ExpressionCloze3` then a card will be generated for `c1` and `c2` only.
 
@@ -72,6 +72,9 @@ The templates also support hints in the cloze deletions, as in Anki's system.  F
 ```
 ((c1::Ik)) ((c2::heb::verb)) ((c3::honger)).
 ```
+
+For the full details on how to set up your card templates manually, see the [instructions](https://github.com/matthayes/anki_cloze_anything/blob/master/docs/INSTRUCTIONS.md).
+Alternatively, you can use the [shared deck](https://ankiweb.net/shared/info/1637056056) as a starting point and use the instructions as reference in how to modify it to meet your needs.
 
 ### Configuration
 

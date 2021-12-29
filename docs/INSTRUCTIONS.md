@@ -1,6 +1,8 @@
 # Instructions
 
-This guide walks you through how to set up the fields and card templates for the Cloze Anything approach.  Alternatively you can download [the shared deck](https://ankiweb.net/shared/info/1637056056), which was set up using these instructions.
+This guide walks you through how to set up the fields and card templates for the Cloze Anything approach.  Alternatively you can download [the shared deck](https://ankiweb.net/shared/info/1637056056) as a starting point, which was set up using these instructions.
+
+**Note:** These instructions guide you through creating very basic front and back card templates that leverage the Cloze Anything system.  The JavaScript library does not impose many requirements on how you set up these templates.  You actually have a lot of freedom in how you customize them.  The key requirements of the JavaScript library will be called out as we go.
 
 First, decide on the name for your field that will hold your cloze content.  If you would like to use the plugin to help you edit your notes (strongly recommended) then the name should end in *Cloze*.  If you don't care to use the plugin then there is no requirement for the field name (you can always rename later if you want).  For the remainder I'll assume you're using `ExpressionCloze` as the field name.  Create this field.
 
@@ -12,7 +14,7 @@ Download the JavaScript file from the most recent release in the [releases page]
 
 **Note:** The version is included in the file name for a couple reasons: 1) It enables multiple versions of the script to be used by different note types, and 2) It ensures that if you update to a newer version of the script that your cards will use that newer version.  Changing an existing file in `collections.media` may not result in that change being synced.
 
-Create a card type named `ExpressionCloze1` (the same name as the first cloze deletion field).  For the Front Template enter the following content, but be sure to replace `x.y` with the version of the JavaScript file.  This assumes you also have a field named `Meaning`.  You can of course edit this template as needed to include your own fields.
+Create a card type named `ExpressionCloze1` (the same name as the first cloze deletion field).  For the Front Template enter the following content, but be sure to replace `x.y` with the version of the JavaScript file.  This assumes you also have a field named `Meaning`.  You can of course edit this template as needed to include your own fields and change the content as needed.
 
 ```
 {{#ExpressionCloze}}
@@ -30,13 +32,39 @@ Create a card type named `ExpressionCloze1` (the same name as the first cloze de
 {{/ExpressionCloze}}
 ```
 
-For the Back Template:
+For the Back Template you can simply do the following, which will wrap the front-side content with a div having id `back`:
 
 ```
 <div id="back">
 {{FrontSide}}
 </div>
 ```
+
+Note for the Back Template you could alternatively make a copy of the Front Template, rather than referencing it through `{{FrontSide}}`, and then customize the Back Template to be totally different:
+
+```
+{{#ExpressionCloze}}
+{{#ExpressionCloze1}}
+<div id="back">
+<script defer src="_cloze_anything_x.y.js"></script>
+
+<div id="cloze" data-card="{{Card}}">
+{{ExpressionCloze}}
+</div>
+
+{{Meaning}}
+</div>
+{{/ExpressionCloze1}}
+{{/ExpressionCloze}}
+```
+
+Now is a good point to call out some requirements of the JavaScript library and how they manifest here.
+
+1. There must be an element with `id="cloze"`, which contains the cloze content to be processed, like `{{ExpressionCloze}}` above.
+2. The back template must have an element with `id="back"` somewhere in the document, in order to identify this as the back card, and the front template must not.
+3. The `id="cloze"` element must have an attribute `data-card` with value that ends in a numberic value representing which cloze this is.  Typically you'd use `data-card="{{Card}}"` and name your card templates something like `ExpressionCloze1`, `ExpressionCloze2`, etc. which would be interpreted as being cloze number `1`, `2`, etc. corresponding to `c1`, `c2`, etc.
+
+If the above requirements are met, then the content of the `id="cloze"` element will be replaced by the JavaScript library with either the front- or back-side version of the cloze-rendered content.
 
 For the styling, add the additonal content to whatever is already present:
 
@@ -59,7 +87,7 @@ For the styling, add the additonal content to whatever is already present:
 }
 ```
 
-The `cloze` div is initially not displayed in order to give the JavaScript time to render the content.
+With the CSS rules above, the `cloze` div is initially not displayed in order to give the JavaScript time to render the content.  The JavaScript library adds the `show` class after it is done rendering.  This avoids temporarily flasshing the non-rendered cloze content before the JavaScript has a chance to run.
 
 Now repeat this for the remaining cloze fields.  That is, if you have field `ExpressionCloze2`, then create a card template named `ExpressionCloze2` with the same content as `ExpressionCloze1` except with `{{#ExpressionCloze1}}` replaced with `{{#ExpressionCloze2}}` and `{{//ExpressionCloze1}}` replaced with `{{//ExpressionCloze2}}`.  Do the same for `ExpressionCloze3`, and so on.
 
