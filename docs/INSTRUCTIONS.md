@@ -62,7 +62,7 @@ Now is a good point to call out some requirements of the JavaScript library and 
 
 1. There must be an element with `id="cloze"`, which contains the cloze content to be processed, like `{{ExpressionCloze}}` above.
 2. The back template must have an element with `id="back"` somewhere in the document, in order to identify this as the back card, and the front template must not.
-3. The `id="cloze"` element must have an attribute `data-card` with value that ends in a numberic value representing which cloze this is.  Typically you'd use `data-card="{{Card}}"` and name your card templates something like `ExpressionCloze1`, `ExpressionCloze2`, etc. which would be interpreted as being cloze number `1`, `2`, etc. corresponding to `c1`, `c2`, etc.
+3. The `id="cloze"` element must have an attribute `data-card` with value that ends in a numeric value representing which cloze this is.  Typically you'd use `data-card="{{Card}}"` and name your card templates something like `ExpressionCloze1`, `ExpressionCloze2`, etc. which would be interpreted as being cloze number `1`, `2`, etc. corresponding to `c1`, `c2`, etc.
 
 If the above requirements are met, then the content of the `id="cloze"` element will be replaced by the JavaScript library with either the front- or back-side version of the cloze-rendered content.
 
