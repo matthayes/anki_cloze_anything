@@ -9,7 +9,7 @@ This project provides a template-based cloze implementation that:
 * does not require any modifications to Anki (via a plugin) for it to work,
 * and provides more flexibility in cloze card generation
 
-This is achieved purely through JavaScript in the card template and a novel application of Anki's built-in (awesome) [Selective Card Generation](https://apps.ankiweb.net/docs/manual.html#selective-card-generation) feature.  The big benefit of this is that you can generate cloze cards from existing notes, for which you may already have cards.  It has no dependency on Anki's Cloze note type nor any other note types, which means you don't have to migrate your cards to a new note type.  It is compatible with Anki Desktop, AnkiMobile, and AnkiDroid.
+This is achieved purely through JavaScript in the card template and a novel application of Anki's built-in (awesome) [Selective Card Generation](https://docs.ankiweb.net/templates/generation.html#selective-card-generation) feature.  The big benefit of this is that you can generate cloze cards from existing notes, for which you may already have cards.  It has no dependency on Anki's Cloze note type nor any other note types, which means you don't have to migrate your cards to a new note type.  It is compatible with Anki Desktop, AnkiMobile, and AnkiDroid.
 
 Getting started is easy.  You can either download the [shared deck](https://ankiweb.net/shared/info/1637056056) or follow the [instructions](https://github.com/matthayes/anki_cloze_anything/blob/master/docs/INSTRUCTIONS.md) for setting up the templates manually.
 
