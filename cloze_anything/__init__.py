@@ -120,7 +120,7 @@ def onCloze(editor):
                 if cloze_nums:
                     next_cloze_num = max(cloze_nums)
                     # Unless we are reusing, then increment to the next greatest cloze number.
-                    if not editor.mw.app.keyboardModifiers() & Qt.AltModifier:
+                    if not editor.mw.app.keyboardModifiers() & Qt.KeyboardModifier.AltModifier:
                         next_cloze_num += 1
                 else:
                     next_cloze_num = 1
@@ -137,12 +137,8 @@ def onCloze(editor):
 
                 missing_cloze_num = cloze_nums - found_cloze_nums
 
-                # There doesn't seem to be an easy way to programmatically update the editor with some arbitrary content
-                # due to how this is set up in OldEditorAdapter.svelte.
-                # It seems the best way is to call setField with all the note data, which is basically like reloading the
-                # editor with all the note content.  The downside is that the focus is reset to the beginning of the field.
                 def callback(arg):
-                    editor.web.eval(get_set_fields_command(editor))
+                    editor.saveNow(lambda: None)
 
                 editor.web.evalWithCallback(wrap_command, callback)
 
